@@ -8,13 +8,9 @@ import (
 
 	routingtypes "github.com/agntcy/dir/api/routing/v1alpha2"
 	searchtypesv1alpha2 "github.com/agntcy/dir/api/search/v1alpha2"
-	storetypes "github.com/agntcy/dir/api/store/v1alpha1"
+	storetypes "github.com/agntcy/dir/api/store/v1alpha2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-)
-
-const (
-	chunkSize = 4096 // 4KB
 )
 
 type Client struct {
