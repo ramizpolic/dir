@@ -254,6 +254,7 @@ func (s *V1SkillAdapter) GetName() string {
 		return ""
 	}
 	// Use the skill's own GetName method which returns categoryName/className format
+	// This preserves V1's semantic meaning where skills are hierarchical (category/class)
 	return s.skill.GetName()
 }
 

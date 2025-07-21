@@ -151,6 +151,8 @@ func getManifest(t *testing.T, tag string) map[string]interface{} {
 }
 
 func TestIntegrationOCIStoreWorkflow(t *testing.T) {
+	// NOTE: This integration test uses V1 records where skills have "categoryName/className" format
+	// This differs from V2/V3 which use simple skill names
 	ctx, cancel := context.WithTimeout(context.Background(), integrationTimeout)
 	defer cancel()
 
@@ -232,15 +234,16 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 
 		// Verify core annotations
 		expectedAnnotations := map[string]string{
-			"org.agntcy.dir/type":            "record",
-			"org.agntcy.dir/name":            "integration-test-agent",
-			"org.agntcy.dir/version":         "v1.0.0",
-			"org.agntcy.dir/description":     "Integration test agent for OCI storage",
-			"org.agntcy.dir/oasf-version":    "v1",
-			"org.agntcy.dir/schema-version":  "v1",
-			"org.agntcy.dir/created-at":      "2023-01-01T00:00:00Z",
-			"org.agntcy.dir/authors":         "integration-test@example.com",
-			"org.agntcy.dir/skills":          "processing,inference",
+			"org.agntcy.dir/type":           "record",
+			"org.agntcy.dir/name":           "integration-test-agent",
+			"org.agntcy.dir/version":        "v1.0.0",
+			"org.agntcy.dir/description":    "Integration test agent for OCI storage",
+			"org.agntcy.dir/oasf-version":   "v1",
+			"org.agntcy.dir/schema-version": "v1",
+			"org.agntcy.dir/created-at":     "2023-01-01T00:00:00Z",
+			"org.agntcy.dir/authors":        "integration-test@example.com",
+			// NOTE: V1 skills use "categoryName/className" hierarchical format
+			"org.agntcy.dir/skills":          "nlp/processing,ml/inference",
 			"org.agntcy.dir/locator-types":   "docker,helm",
 			"org.agntcy.dir/extension-names": "security,monitoring",
 			"org.agntcy.dir/signed":          "false",
@@ -326,7 +329,8 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		// Verify metadata contains expected fields
 		assert.Equal(t, "integration-test-agent", meta.Annotations["name"])
 		assert.Equal(t, "v1.0.0", meta.Annotations["version"])
-		assert.Equal(t, "processing,inference", meta.Annotations["skills"])
+		// NOTE: V1 skills use "categoryName/className" hierarchical format
+		assert.Equal(t, "nlp/processing,ml/inference", meta.Annotations["skills"])
 		assert.Equal(t, "v1", meta.SchemaVersion)
 		assert.Equal(t, "2023-01-01T00:00:00Z", meta.CreatedAt)
 	})
@@ -372,7 +376,8 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 
 		assert.True(t, tagSet["integration-test-agent"], "Should reconstruct name tag")
 		assert.True(t, tagSet["integration-test-agent_v1.0.0"], "Should reconstruct version tag")
-		assert.True(t, tagSet["skill.processing"], "Should reconstruct skill tag")
+		// NOTE: V1 skills use "categoryName/className" format, so tags become "skill.nlp.processing"
+		assert.True(t, tagSet["skill.nlp.processing"], "Should reconstruct skill tag")
 		assert.True(t, tagSet["ext.security"], "Should reconstruct extension tag")
 		assert.True(t, tagSet["deploy.docker"], "Should reconstruct deploy tag")
 	})

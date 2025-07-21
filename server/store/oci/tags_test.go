@@ -184,7 +184,8 @@ func TestGenerateTagsFromMetadata(t *testing.T) {
 		{
 			name: "Capability-based tags",
 			metadata: map[string]string{
-				MetadataKeySkills:         "processing,service", // Only ClassName is extracted
+				// NOTE: This test uses pre-processed metadata with simple skill names
+				MetadataKeySkills:         "processing,service",
 				MetadataKeyExtensionNames: "security,monitoring",
 			},
 			cid: "QmTest123",
@@ -260,6 +261,10 @@ func TestGenerateTagsFromMetadata(t *testing.T) {
 }
 
 func TestExtractMetadataFromRecord(t *testing.T) {
+	// NOTE: This test covers different OASF versions with varying skill name formats:
+	// - V1 (objects.v1): Skills use "categoryName/className" hierarchical format
+	// - V2 (objects.v2): Skills use simple name strings
+	// - V3 (objects.v3): Skills use simple name strings
 	tests := []struct {
 		name     string
 		record   *corev1.Record
@@ -298,9 +303,10 @@ func TestExtractMetadataFromRecord(t *testing.T) {
 				},
 			},
 			expected: map[string]string{
-				MetadataKeyName:           "test-agent",
-				MetadataKeyVersion:        "1.0.0",
-				MetadataKeySkills:         "processing,service", // Only ClassName is extracted
+				MetadataKeyName:    "test-agent",
+				MetadataKeyVersion: "1.0.0",
+				// NOTE: V1 skills use "categoryName/className" format
+				MetadataKeySkills:         "nlp/processing,translation/service",
 				MetadataKeyLocatorTypes:   "docker,helm",
 				MetadataKeyExtensionNames: "security,monitoring",
 				MetadataKeyTeam:           "backend",
@@ -331,8 +337,9 @@ func TestExtractMetadataFromRecord(t *testing.T) {
 				},
 			},
 			expected: map[string]string{
-				MetadataKeyName:           "test-record",
-				MetadataKeyVersion:        "2.0.0",
+				MetadataKeyName:    "test-record",
+				MetadataKeyVersion: "2.0.0",
+				// NOTE: V3 skills use simple names, unlike V1 which uses "categoryName/className"
 				MetadataKeySkills:         "machine-learning",
 				MetadataKeyLocatorTypes:   "kubernetes",
 				MetadataKeyExtensionNames: "logging",
@@ -388,7 +395,8 @@ func TestGenerateDiscoveryTags(t *testing.T) {
 	normalizedCID := normalizeTagForOCI(actualCID)
 	assert.Contains(t, tags, normalizedCID, "Should contain normalized CID tag")
 	assert.Contains(t, tags, "test-agent", "Should contain name tag")
-	assert.Contains(t, tags, "skill.processing", "Should contain skill tag")
+	// NOTE: V1 skills use "categoryName/className" format, so tag becomes "skill.nlp.processing"
+	assert.Contains(t, tags, "skill.nlp.processing", "Should contain skill tag")
 
 	// Test with nil record
 	nilTags := generateDiscoveryTags(nil, DefaultTagStrategy)
@@ -397,8 +405,9 @@ func TestGenerateDiscoveryTags(t *testing.T) {
 
 func TestReconstructTagsFromRecord(t *testing.T) {
 	metadata := map[string]string{
-		MetadataKeyName:   "test-agent",
-		MetadataKeySkills: "processing,service", // Only ClassName is extracted
+		MetadataKeyName: "test-agent",
+		// NOTE: This test simulates already-processed metadata, so we use simple skill names
+		MetadataKeySkills: "processing,service",
 	}
 	cid := "QmTestCID123"
 

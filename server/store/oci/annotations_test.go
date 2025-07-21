@@ -65,6 +65,10 @@ func TestParseCommaSeparated(t *testing.T) {
 }
 
 func TestExtractManifestAnnotations(t *testing.T) {
+	// NOTE: This test covers different OASF versions with varying skill name formats:
+	// - V1 (objects.v1): Skills use "categoryName/className" hierarchical format
+	// - V2 (objects.v2): Skills use simple name strings
+	// - V3 (objects.v3): Skills use simple name strings
 	tests := []struct {
 		name     string
 		record   *corev1.Record
@@ -131,9 +135,10 @@ func TestExtractManifestAnnotations(t *testing.T) {
 				},
 			},
 			contains: map[string]string{
-				ManifestKeyName:                     "skill-agent",
-				ManifestKeyVersion:                  "2.0.0",
-				ManifestKeySkills:                   "processing,inference",
+				ManifestKeyName:    "skill-agent",
+				ManifestKeyVersion: "2.0.0",
+				// NOTE: V1 skills use "categoryName/className" format, unlike V2/V3 which use simple names
+				ManifestKeySkills:                   "nlp/processing,ml/inference",
 				ManifestKeyLocatorTypes:             "docker,helm",
 				ManifestKeyExtensionNames:           "security,monitoring",
 				ManifestKeyCustomPrefix + "custom1": "value1",
@@ -160,6 +165,7 @@ func TestExtractManifestAnnotations(t *testing.T) {
 				ManifestKeyName:        "test-record-v2",
 				ManifestKeyVersion:     "2.0.0",
 				ManifestKeyDescription: "Test record v2 description",
+				// NOTE: V3 skills use simple names, unlike V1 which uses "categoryName/className"
 				ManifestKeySkills:      "nlp-skill",
 				ManifestKeyPreviousCid: "QmPreviousCID123",
 				ManifestKeySigned:      "false",
@@ -472,6 +478,7 @@ func TestExtractManifestAnnotations_EdgeCases(t *testing.T) {
 
 func TestRoundTripConversion(t *testing.T) {
 	// Test that we can extract manifest annotations and parse them back correctly
+	// NOTE: This test uses V1 format where skills have "categoryName/className" structure
 	originalRecord := &corev1.Record{
 		Data: &corev1.Record_V1{
 			V1: &objectsv1.Agent{
@@ -506,7 +513,8 @@ func TestRoundTripConversion(t *testing.T) {
 	assert.Equal(t, "v1", recordMeta.Annotations[MetadataKeyOASFVersion])
 	assert.Equal(t, "author1,author2", recordMeta.Annotations[MetadataKeyAuthors])
 	assert.Equal(t, "2", recordMeta.Annotations[MetadataKeyAuthorsCount])
-	assert.Equal(t, "processing", recordMeta.Annotations[MetadataKeySkills])
+	// NOTE: V1 skills return "categoryName/className" format, not just className
+	assert.Equal(t, "nlp/processing", recordMeta.Annotations[MetadataKeySkills])
 	assert.Equal(t, "1", recordMeta.Annotations[MetadataKeySkillsCount])
 	assert.Equal(t, "value", recordMeta.Annotations["custom"])
 }
