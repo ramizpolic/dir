@@ -253,8 +253,8 @@ func (s *V1SkillAdapter) GetName() string {
 	if s.skill == nil {
 		return ""
 	}
-	// TODO: maybe we should use the categoryName/className instead of just className
-	return s.skill.GetClassName()
+	// Use the skill's own GetName method which returns categoryName/className format
+	return s.skill.GetName()
 }
 
 // GetId implements types.Skill interface

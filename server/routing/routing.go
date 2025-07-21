@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	coretypes "github.com/agntcy/dir/api/core/v1alpha1"
+	corev1 "github.com/agntcy/dir/api/core/v1"
 	routingtypes "github.com/agntcy/dir/api/routing/v1alpha2"
 	"github.com/agntcy/dir/server/datastore"
 	"github.com/agntcy/dir/server/types"
@@ -46,16 +46,16 @@ func New(ctx context.Context, store types.StoreAPI, opts types.APIOptions) (type
 	return mainRounter, nil
 }
 
-func (r *route) Publish(ctx context.Context, object *coretypes.Object) error {
+func (r *route) Publish(ctx context.Context, ref *corev1.RecordRef, record *corev1.Record) error {
 	// always publish data locally for archival/querying
-	err := r.local.Publish(ctx, object)
+	err := r.local.Publish(ctx, ref, record)
 	if err != nil {
 		st := status.Convert(err)
 
 		return status.Errorf(st.Code(), "failed to publish locally: %s", st.Message())
 	}
 
-	err = r.remote.Publish(ctx, object)
+	err = r.remote.Publish(ctx, ref, record)
 	if err != nil {
 		st := status.Convert(err)
 
@@ -67,9 +67,9 @@ func (r *route) Publish(ctx context.Context, object *coretypes.Object) error {
 
 func (r *route) List(ctx context.Context, req *routingtypes.ListRequest) (<-chan *routingtypes.LegacyListResponse_Item, error) {
 	// Use remote routing when:
-	// 1. Looking for a specific record (digest) - to find providers across the network
+	// 1. Looking for a specific record (cid) - to find providers across the network
 	// 2. MaxHops is set - indicates network traversal
-	if req.GetLegacyListRequest().GetRecord() != nil || req.GetLegacyListRequest().GetMaxHops() > 0 {
+	if req.GetLegacyListRequest().GetRef() != nil || req.GetLegacyListRequest().GetMaxHops() > 0 {
 		return r.remote.List(ctx, req)
 	}
 
@@ -77,8 +77,8 @@ func (r *route) List(ctx context.Context, req *routingtypes.ListRequest) (<-chan
 	return r.local.List(ctx, req)
 }
 
-func (r *route) Unpublish(ctx context.Context, object *coretypes.Object) error {
-	err := r.local.Unpublish(ctx, object)
+func (r *route) Unpublish(ctx context.Context, ref *corev1.RecordRef, record *corev1.Record) error {
+	err := r.local.Unpublish(ctx, ref, record)
 	if err != nil {
 		st := status.Convert(err)
 

@@ -8,7 +8,7 @@ package routing.v1alpha2;
 import "google/protobuf/empty.proto";
 import "routing/v1alpha2/peer.proto";
 import "routing/v1alpha2/record_query.proto";
-import "core/v1alpha1/object.proto"; // TODO replace with record
+import "core/v1/record.proto";
 
 // Defines an interface for announcement and discovery
 // of records across interconnected network.
@@ -112,9 +112,9 @@ message LegacyListRequest {
   // For example, labels={"skill=text", "skill=text/rag"}
   repeated string labels = 2;
 
-  // Target object, if any.
-  // If set, it will return only the object with the given reference.
-  optional core.v1alpha1.ObjectRef record = 3;
+  // Target record, if any.
+  // If set, it will return only the record with the given reference.
+  optional core.v1.RecordRef ref = 3;
 
   // Max routing depth.
   optional uint32 max_hops = 4;
@@ -131,7 +131,7 @@ message ListResponse {
 
 message LegacyListResponse {
   message Item {
-    // Labels associated with a given object
+    // Labels associated with a given record
     repeated string labels = 1;
 
     // Optionally sends count details about individual skill.
@@ -139,12 +139,12 @@ message LegacyListResponse {
     // For record requests, only returns the data about that record.
     map<string, uint64> label_counts = 2;
 
-    // Peer that returned this object.
+    // Peer that returned this record.
     Peer peer = 3;
 
-    // Found object if any.
+    // Found record if any.
     // If empty, then only the labels are important.
-    optional core.v1alpha1.ObjectRef record = 4;
+    optional core.v1.RecordRef ref = 4;
   }
 
   // Returned items that match a given request

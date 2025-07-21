@@ -6,12 +6,9 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 
-	objectsv1 "buf.build/gen/go/agntcy/oasf/protocolbuffers/go/objects/v1"
-	coretypes "github.com/agntcy/dir/api/core/v1alpha1"
+	corev1 "github.com/agntcy/dir/api/core/v1"
 	routetypes "github.com/agntcy/dir/api/routing/v1alpha2"
 	"github.com/agntcy/dir/server/types"
 	"github.com/agntcy/dir/utils/logging"
@@ -41,17 +38,13 @@ type RPCAPI struct {
 }
 
 type PullResponse struct {
-	Digest      string
-	Type        string
-	Size        uint64
+	Cid         string
 	Annotations map[string]string
 	Data        []byte
 }
 
 type LookupResponse struct {
-	Digest      string
-	Type        string
-	Size        uint64
+	Cid         string
 	Annotations map[string]string
 }
 
@@ -64,13 +57,11 @@ type ListResponse struct {
 	Labels      []string
 	LabelCounts map[string]uint64
 	Peer        string
-	Digest      string
-	Type        string
-	Size        uint64
+	Cid         string
 	Annotations map[string]string
 }
 
-func (r *RPCAPI) Lookup(ctx context.Context, in *coretypes.ObjectRef, out *LookupResponse) error {
+func (r *RPCAPI) Lookup(ctx context.Context, in *corev1.RecordRef, out *LookupResponse) error {
 	logger.Debug("P2p RPC: Executing Lookup request on remote peer", "peer", r.service.host.ID())
 
 	// validate request
@@ -88,16 +79,14 @@ func (r *RPCAPI) Lookup(ctx context.Context, in *coretypes.ObjectRef, out *Looku
 
 	// write result
 	*out = LookupResponse{
-		Digest:      meta.GetDigest(),
-		Type:        meta.GetType(),
-		Size:        meta.GetSize(),
+		Cid:         meta.GetCid(),
 		Annotations: meta.GetAnnotations(),
 	}
 
 	return nil
 }
 
-func (r *RPCAPI) Pull(ctx context.Context, in *coretypes.ObjectRef, out *PullResponse) error {
+func (r *RPCAPI) Pull(ctx context.Context, in *corev1.RecordRef, out *PullResponse) error {
 	logger.Debug("P2p RPC: Executing Pull request on remote peer", "peer", r.service.host.ID())
 
 	// validate request
@@ -113,36 +102,23 @@ func (r *RPCAPI) Pull(ctx context.Context, in *coretypes.ObjectRef, out *PullRes
 		return status.Errorf(st.Code(), "failed to lookup: %s", st.Message())
 	}
 
-	// validate lookup before pull
-	if meta.GetType() != coretypes.ObjectType_OBJECT_TYPE_AGENT.String() {
-		return status.Errorf(codes.Internal, "can only pull agent object")
-	}
-
-	if meta.GetSize() > MaxPullSize {
-		return status.Errorf(codes.Internal, "object too large to pull: %d bytes", meta.GetSize())
-	}
-
 	// pull data
-	reader, err := r.service.store.Pull(ctx, meta)
+	record, err := r.service.store.Pull(ctx, in)
 	if err != nil {
 		st := status.Convert(err)
 
 		return status.Errorf(st.Code(), "failed to pull: %s", st.Message())
 	}
-	defer reader.Close()
 
-	// read result from reader
-	data, err := io.ReadAll(io.LimitReader(reader, MaxPullSize))
+	canonicalBytes, err := record.CanonicalMarshal()
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to read data: %v", err)
+		return status.Errorf(codes.Internal, "failed to marshal record: %v", err)
 	}
 
 	// set output
 	*out = PullResponse{
-		Digest:      meta.GetDigest(),
-		Type:        meta.GetType(),
-		Size:        meta.GetSize(),
-		Data:        data,
+		Cid:         meta.GetCid(),
+		Data:        canonicalBytes,
 		Annotations: meta.GetAnnotations(),
 	}
 
@@ -175,11 +151,8 @@ func (r *RPCAPI) List(ctx context.Context, inCh <-chan *ListRequest, outCh chan<
 				Peer:        r.service.host.ID().String(), // remote peer where local list was called
 			}
 
-			if record := item.GetRecord(); record != nil {
-				result.Annotations = record.GetAnnotations()
-				result.Size = record.GetSize()
-				result.Digest = record.GetDigest()
-				result.Type = record.GetType()
+			if ref := item.GetRef(); ref != nil {
+				result.Cid = ref.GetCid()
 			}
 
 			// forward data
@@ -220,7 +193,7 @@ func New(host host.Host, store types.StoreAPI, route types.RoutingAPI) (*Service
 	return service, nil
 }
 
-func (s *Service) Lookup(ctx context.Context, peer peer.ID, req *coretypes.ObjectRef) (*coretypes.ObjectRef, error) {
+func (s *Service) Lookup(ctx context.Context, peer peer.ID, req *corev1.RecordRef) (*corev1.RecordRef, error) {
 	logger.Debug("P2p RPC: Executing Lookup request on remote peer", "peer", peer, "req", req)
 
 	var resp LookupResponse
@@ -230,15 +203,12 @@ func (s *Service) Lookup(ctx context.Context, peer peer.ID, req *coretypes.Objec
 		return nil, status.Errorf(codes.Internal, "failed to call remote peer: %v", err)
 	}
 
-	return &coretypes.ObjectRef{
-		Digest:      resp.Digest,
-		Type:        resp.Type,
-		Size:        resp.Size,
-		Annotations: resp.Annotations,
+	return &corev1.RecordRef{
+		Cid: resp.Cid,
 	}, nil
 }
 
-func (s *Service) Pull(ctx context.Context, peer peer.ID, req *coretypes.ObjectRef) (*coretypes.Object, error) {
+func (s *Service) Pull(ctx context.Context, peer peer.ID, req *corev1.RecordRef) (*corev1.Record, error) {
 	logger.Debug("P2p RPC: Executing Pull request on remote peer", "peer", peer, "req", req)
 
 	var resp PullResponse
@@ -248,22 +218,12 @@ func (s *Service) Pull(ctx context.Context, peer peer.ID, req *coretypes.ObjectR
 		return nil, status.Errorf(codes.Internal, "failed to call remote peer: %v", err)
 	}
 
-	// convert to agent
-	// TODO
-	var agent *objectsv1.Agent
-	if err := json.Unmarshal(resp.Data, &agent); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to unmarshal agent data: %v", err)
+	record, err := corev1.CanonicalUnmarshal(resp.Data)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to unmarshal record: %v", err)
 	}
 
-	return &coretypes.Object{
-		Ref: &coretypes.ObjectRef{
-			Digest:      resp.Digest,
-			Type:        resp.Type,
-			Size:        resp.Size,
-			Annotations: resp.Annotations,
-		},
-		Agent: agent,
-	}, nil
+	return record, nil
 }
 
 // range over the result channel, then read the error after the loop.
@@ -317,29 +277,26 @@ func (s *Service) List(ctx context.Context, peers []peer.ID, req *routetypes.Lis
 
 		// remove duplicate outputs to avoid redundant entries
 		// this can happen when multiple peers are connected to the same peer that holds the object
-		seenPeerAgents := make(map[string]struct{})
+		seenPeerRecords := make(map[string]struct{})
 
 		// forward data to response channel
 		for out := range outCh {
-			uniqueKey := out.Peer + out.Digest
+			uniqueKey := out.Peer + out.Cid
 
 			// check if we have already seen this peer
-			if _, ok := seenPeerAgents[uniqueKey]; ok {
+			if _, ok := seenPeerRecords[uniqueKey]; ok {
 				continue
 			}
 
-			seenPeerAgents[uniqueKey] = struct{}{}
+			seenPeerRecords[uniqueKey] = struct{}{}
 			respCh <- &routetypes.LegacyListResponse_Item{
 				Labels:      out.Labels,
 				LabelCounts: out.LabelCounts,
 				Peer: &routetypes.Peer{
 					Id: out.Peer,
 				},
-				Record: &coretypes.ObjectRef{
-					Digest:      out.Digest,
-					Type:        out.Type,
-					Size:        out.Size,
-					Annotations: out.Annotations,
+				Ref: &corev1.RecordRef{
+					Cid: out.Cid,
 				},
 			}
 		}
