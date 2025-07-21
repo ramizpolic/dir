@@ -10,7 +10,7 @@ managed:
     # Override for local proto files (core, etc.)
     - file_option: go_package_prefix
       value: github.com/agntcy/dir/api
-      module: github.com/agntcy/dir
+      module: buf.build/agntcy/dir
     # Override for OASF module to generate into api/oasf/
     - file_option: go_package_prefix
       value: github.com/agntcy/dir/api
