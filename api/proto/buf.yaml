@@ -13,4 +13,4 @@ deps:
   - buf.build/agntcy/oasf
 modules:
   - path: .
-    name: github.com/agntcy/dir
+    name: buf.build/agntcy/dir
