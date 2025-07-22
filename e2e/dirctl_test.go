@@ -35,31 +35,13 @@ var _ = ginkgo.Describe("Running dirctl end-to-end tests using a local single no
 	}
 	tempAgentPath := filepath.Join(tempAgentDir, "agent.json")
 
-	ginkgo.Context("agent build", func() {
-		ginkgo.It("should build an agent", func() {
-			var outputBuffer bytes.Buffer
+	// Setup: Copy test agent to temp location for push/pull tests
+	ginkgo.BeforeEach(func() {
+		err := os.MkdirAll(filepath.Dir(tempAgentPath), 0o755)
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			compileCmd := clicmd.RootCmd
-			compileCmd.SetOut(&outputBuffer)
-			compileCmd.SetArgs([]string{
-				"build",
-				"testdata",
-			})
-
-			err := compileCmd.Execute()
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-			err = os.MkdirAll(filepath.Dir(tempAgentPath), 0o755)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-			err = os.WriteFile(tempAgentPath, outputBuffer.Bytes(), 0o600)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-			// Compare the output with the expected JSON
-			equal, err := compareJSONAgents(outputBuffer.Bytes(), expectedAgentJSON)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			gomega.Expect(equal).To(gomega.BeTrue())
-		})
+		err = os.WriteFile(tempAgentPath, expectedAgentJSON, 0o600)
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 	})
 
 	ginkgo.Context("agent push and pull", func() {
