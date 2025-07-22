@@ -26,10 +26,17 @@ func listNetwork(cmd *cobra.Command, client *client.Client, labels []string) err
 
 	// Print the results
 	for item := range items {
+		var cid string
+		if ref := item.GetRef(); ref != nil {
+			cid = ref.GetCid()
+		} else {
+			cid = "unknown"
+		}
+
 		presenter.Printf(cmd,
-			"Peer %s\n  Digest: %s\n  Labels: %s\n",
+			"Peer %s\n  CID: %s\n  Labels: %s\n",
 			item.GetPeer().GetId(),
-			item.GetRecord().GetDigest(),
+			cid,
 			strings.Join(item.GetLabels(), ", "),
 		)
 	}

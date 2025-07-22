@@ -7,11 +7,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/agntcy/dir/cli/cmd/build"
+	// "github.com/agntcy/dir/cli/cmd/build"  // REMOVED: Builder functionality
 	"github.com/agntcy/dir/cli/cmd/delete"
-	hubCmd "github.com/agntcy/dir/cli/cmd/hub"
 	"github.com/agntcy/dir/cli/cmd/info"
-	"github.com/agntcy/dir/cli/cmd/initialize"
+
+	// "github.com/agntcy/dir/cli/cmd/initialize" // REMOVED: Initialize functionality
 	"github.com/agntcy/dir/cli/cmd/list"
 	"github.com/agntcy/dir/cli/cmd/network"
 	"github.com/agntcy/dir/cli/cmd/publish"
@@ -24,7 +24,6 @@ import (
 	"github.com/agntcy/dir/cli/cmd/version"
 	ctxUtils "github.com/agntcy/dir/cli/util/context"
 	"github.com/agntcy/dir/client"
-	"github.com/agntcy/dir/hub"
 	"github.com/spf13/cobra"
 )
 
@@ -55,8 +54,8 @@ func init() {
 	RootCmd.AddCommand(
 		// local commands
 		version.Command,
-		build.Command,
-		initialize.Command,
+		// build.Command, // REMOVED: Builder functionality
+		// initialize.Command, // REMOVED: Initialize functionality
 		sign.Command,
 		verify.Command,
 		// storage commands
@@ -69,7 +68,7 @@ func init() {
 		list.Command,
 		unpublish.Command,
 		network.Command,
-		hubCmd.NewCommand(hub.NewHub()),
+		// hubCmd.NewCommand(hub.NewHub()), // REMOVED: Hub functionality
 		// search commands
 		search.Command,
 	)
