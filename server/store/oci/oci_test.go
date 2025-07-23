@@ -5,10 +5,8 @@
 package oci
 
 import (
-	"bytes"
 	"context"
 	"os"
-	"strconv"
 	"testing"
 
 	corev1 "github.com/agntcy/dir/api/core/v1"
@@ -33,9 +31,6 @@ var (
 
 	// common test.
 	testCtx = context.Background()
-
-	// common bench.
-	benchChunk = bytes.Repeat([]byte{1}, 4096) // for checking chunking efficiency based on size
 )
 
 func TestStorePushLookupPullDelete(t *testing.T) {
@@ -99,8 +94,8 @@ func BenchmarkLocalStore(b *testing.B) {
 	}
 
 	store := loadLocalStore(&testing.T{})
-	for step := range b.N {
-		benchmarkStep(store, append(benchChunk, []byte(strconv.Itoa(step))...))
+	for range b.N {
+		benchmarkStep(store)
 	}
 }
 
@@ -110,12 +105,12 @@ func BenchmarkRemoteStore(b *testing.B) {
 	}
 
 	store := loadRemoteStore(&testing.T{})
-	for step := range b.N {
-		benchmarkStep(store, append(benchChunk, []byte(strconv.Itoa(step))...))
+	for range b.N {
+		benchmarkStep(store)
 	}
 }
 
-func benchmarkStep(store types.StoreAPI, testData []byte) {
+func benchmarkStep(store types.StoreAPI) {
 	// Create test record
 	agent := &objectsv1.Agent{
 		Name:          "bench-agent",

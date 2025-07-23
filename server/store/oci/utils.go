@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// getDigestFromCID converts a CID string to an OCI digest
+// getDigestFromCID converts a CID string to an OCI digest.
 func getDigestFromCID(cidString string) (ocidigest.Digest, error) {
 	c, err := cid.Decode(cidString)
 	if err != nil {
@@ -19,6 +19,7 @@ func getDigestFromCID(cidString string) (ocidigest.Digest, error) {
 	}
 
 	mhBytes := c.Hash()
+
 	decoded, err := mh.Decode(mhBytes)
 	if err != nil {
 		return "", status.Errorf(codes.Internal, "failed to decode multihash: %v", err)

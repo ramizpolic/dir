@@ -12,87 +12,83 @@ const (
 	manifestDirObjectKeyPrefix = "org.agntcy.dir"
 	manifestDirObjectTypeKey   = manifestDirObjectKeyPrefix + "/type"
 
-	// Simple Annotation Keys - Used in RecordMeta.Annotations and tag generation
-	// These are the simplified, consumer-friendly keys without prefixes
-	// THESE ARE THE SOURCE OF TRUTH for field names
+	// THESE ARE THE SOURCE OF TRUTH for field names.
 
-	// Core Identity (simple keys)
+	// Core Identity (simple keys).
 	MetadataKeyName        = "name"
 	MetadataKeyVersion     = "version"
 	MetadataKeyDescription = "description"
 	MetadataKeyOASFVersion = "oasf-version"
 
-	// Lifecycle (simple keys)
+	// Lifecycle (simple keys).
 	MetadataKeySchemaVersion = "schema-version"
 	MetadataKeyCreatedAt     = "created-at"
 	MetadataKeyAuthors       = "authors"
 
-	// Capability Discovery (simple keys)
+	// Capability Discovery (simple keys).
 	MetadataKeySkills         = "skills"
 	MetadataKeyLocatorTypes   = "locator-types"
 	MetadataKeyExtensionNames = "extension-names"
 
-	// Security (simple keys)
+	// Security (simple keys).
 	MetadataKeySigned        = "signed"
 	MetadataKeySignatureAlgo = "signature-algorithm"
 	MetadataKeySignedAt      = "signed-at"
 
-	// Versioning (simple keys)
+	// Versioning (simple keys).
 	MetadataKeyPreviousCid = "previous-cid"
 
-	// Team-based (simple keys)
+	// Team-based (simple keys).
 	MetadataKeyTeam         = "team"
 	MetadataKeyOrganization = "organization"
 	MetadataKeyProject      = "project"
 
-	// Count metadata (simple keys)
+	// Count metadata (simple keys).
 	MetadataKeyAuthorsCount      = "authors-count"
 	MetadataKeySkillsCount       = "skills-count"
 	MetadataKeyLocatorTypesCount = "locator-types-count"
 	MetadataKeyExtensionCount    = "extension-names-count"
 
-	// Manifest Annotation Keys - Discovery & Search Metadata
-	// Derived from MetadataKey constants to ensure consistency
+	// Derived from MetadataKey constants to ensure consistency.
 
-	// Core Identity (derived from MetadataKey constants)
+	// Core Identity (derived from MetadataKey constants).
 	ManifestKeyName        = manifestDirObjectKeyPrefix + "/" + MetadataKeyName
 	ManifestKeyVersion     = manifestDirObjectKeyPrefix + "/" + MetadataKeyVersion
 	ManifestKeyDescription = manifestDirObjectKeyPrefix + "/" + MetadataKeyDescription
 	ManifestKeyOASFVersion = manifestDirObjectKeyPrefix + "/" + MetadataKeyOASFVersion
 
-	// Lifecycle Metadata (mixed: some derived, some standalone)
+	// Lifecycle Metadata (mixed: some derived, some standalone).
 	ManifestKeySchemaVersion = manifestDirObjectKeyPrefix + "/" + MetadataKeySchemaVersion
 	ManifestKeyCreatedAt     = manifestDirObjectKeyPrefix + "/" + MetadataKeyCreatedAt
 	ManifestKeyAuthors       = manifestDirObjectKeyPrefix + "/" + MetadataKeyAuthors
 
-	// Capability Discovery (derived from MetadataKey constants)
+	// Capability Discovery (derived from MetadataKey constants).
 	ManifestKeySkills         = manifestDirObjectKeyPrefix + "/" + MetadataKeySkills
 	ManifestKeyLocatorTypes   = manifestDirObjectKeyPrefix + "/" + MetadataKeyLocatorTypes
 	ManifestKeyExtensionNames = manifestDirObjectKeyPrefix + "/" + MetadataKeyExtensionNames
 
-	// Security & Integrity (mixed: some derived, some standalone)
+	// Security & Integrity (mixed: some derived, some standalone).
 	ManifestKeySigned        = manifestDirObjectKeyPrefix + "/" + MetadataKeySigned
 	ManifestKeySignatureAlgo = manifestDirObjectKeyPrefix + "/" + MetadataKeySignatureAlgo
 	ManifestKeySignedAt      = manifestDirObjectKeyPrefix + "/" + MetadataKeySignedAt
 
-	// Versioning & Linking (standalone - no simple key equivalents)
+	// Versioning & Linking (standalone - no simple key equivalents).
 	ManifestKeyPreviousCid = manifestDirObjectKeyPrefix + "/" + MetadataKeyPreviousCid
 
-	// Custom annotations prefix
+	// Custom annotations prefix.
 	ManifestKeyCustomPrefix = manifestDirObjectKeyPrefix + "/custom."
 
-	// Descriptor Annotation Keys - Technical & Storage Metadata
-	// Format Information
+	// Format Information.
 	DescriptorKeyEncoding    = manifestDirObjectKeyPrefix + "/encoding"
 	DescriptorKeyBlobType    = manifestDirObjectKeyPrefix + "/blob-type"
 	DescriptorKeySchema      = manifestDirObjectKeyPrefix + "/schema"
 	DescriptorKeyCompression = manifestDirObjectKeyPrefix + "/compression"
 
-	// Integrity Information
+	// Integrity Information.
 	DescriptorKeyContentCid = manifestDirObjectKeyPrefix + "/content-cid"
 	DescriptorKeySigned     = manifestDirObjectKeyPrefix + "/signed"
 
-	// Storage Information
+	// Storage Information.
 	DescriptorKeyStoredAt     = manifestDirObjectKeyPrefix + "/stored-at"
 	DescriptorKeyStoreVersion = manifestDirObjectKeyPrefix + "/store-version"
 )

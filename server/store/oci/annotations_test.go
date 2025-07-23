@@ -425,17 +425,17 @@ func TestParseManifestAnnotations(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := parseManifestAnnotations(tt.annotations)
 
-			assert.Equal(t, tt.expected.SchemaVersion, result.SchemaVersion)
-			assert.Equal(t, tt.expected.CreatedAt, result.CreatedAt)
+			assert.Equal(t, tt.expected.GetSchemaVersion(), result.GetSchemaVersion())
+			assert.Equal(t, tt.expected.GetCreatedAt(), result.GetCreatedAt())
 
 			// Check all expected annotations
-			for key, expectedValue := range tt.expected.Annotations {
-				assert.Equal(t, expectedValue, result.Annotations[key], "Annotation key %s should have correct value", key)
+			for key, expectedValue := range tt.expected.GetAnnotations() {
+				assert.Equal(t, expectedValue, result.GetAnnotations()[key], "Annotation key %s should have correct value", key)
 			}
 
 			// Ensure no unexpected annotations (allow for additional count fields)
-			for key := range result.Annotations {
-				if _, expected := tt.expected.Annotations[key]; !expected {
+			for key := range result.GetAnnotations() {
+				if _, expected := tt.expected.GetAnnotations()[key]; !expected {
 					// Allow count fields that are auto-generated
 					assert.True(t,
 						key == MetadataKeySkillsCount ||
@@ -505,16 +505,16 @@ func TestRoundTripConversion(t *testing.T) {
 	recordMeta := parseManifestAnnotations(manifestAnnotations)
 
 	// Verify round-trip conversion
-	assert.Equal(t, "v1", recordMeta.SchemaVersion)
-	assert.Equal(t, "2023-01-01T00:00:00Z", recordMeta.CreatedAt)
-	assert.Equal(t, "roundtrip-agent", recordMeta.Annotations[MetadataKeyName])
-	assert.Equal(t, "1.0.0", recordMeta.Annotations[MetadataKeyVersion])
-	assert.Equal(t, "Test roundtrip conversion", recordMeta.Annotations[MetadataKeyDescription])
-	assert.Equal(t, "v1", recordMeta.Annotations[MetadataKeyOASFVersion])
-	assert.Equal(t, "author1,author2", recordMeta.Annotations[MetadataKeyAuthors])
-	assert.Equal(t, "2", recordMeta.Annotations[MetadataKeyAuthorsCount])
+	assert.Equal(t, "v1", recordMeta.GetSchemaVersion())
+	assert.Equal(t, "2023-01-01T00:00:00Z", recordMeta.GetCreatedAt())
+	assert.Equal(t, "roundtrip-agent", recordMeta.GetAnnotations()[MetadataKeyName])
+	assert.Equal(t, "1.0.0", recordMeta.GetAnnotations()[MetadataKeyVersion])
+	assert.Equal(t, "Test roundtrip conversion", recordMeta.GetAnnotations()[MetadataKeyDescription])
+	assert.Equal(t, "v1", recordMeta.GetAnnotations()[MetadataKeyOASFVersion])
+	assert.Equal(t, "author1,author2", recordMeta.GetAnnotations()[MetadataKeyAuthors])
+	assert.Equal(t, "2", recordMeta.GetAnnotations()[MetadataKeyAuthorsCount])
 	// NOTE: V1 skills return "categoryName/className" format, not just className
-	assert.Equal(t, "nlp/processing", recordMeta.Annotations[MetadataKeySkills])
-	assert.Equal(t, "1", recordMeta.Annotations[MetadataKeySkillsCount])
-	assert.Equal(t, "value", recordMeta.Annotations["custom"])
+	assert.Equal(t, "nlp/processing", recordMeta.GetAnnotations()[MetadataKeySkills])
+	assert.Equal(t, "1", recordMeta.GetAnnotations()[MetadataKeySkillsCount])
+	assert.Equal(t, "value", recordMeta.GetAnnotations()["custom"])
 }

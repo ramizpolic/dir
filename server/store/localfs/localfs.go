@@ -50,7 +50,7 @@ func New(cfg fsconfig.Config) (types.StoreAPI, error) {
 	}, nil
 }
 
-func (c *store) Push(ctx context.Context, record *corev1.Record) (*corev1.RecordRef, error) {
+func (c *store) Push(_ context.Context, record *corev1.Record) (*corev1.RecordRef, error) {
 	logger.Debug("Pushing record to LocalFS store", "record", record)
 
 	// Marshal the record to bytes using proto.Marshal
@@ -62,7 +62,7 @@ func (c *store) Push(ctx context.Context, record *corev1.Record) (*corev1.Record
 	// CID must be set by the controller
 	recordCID := record.GetCid()
 	if recordCID == "" {
-		return nil, status.Error(codes.InvalidArgument, "record CID is required")
+		return nil, status.Error(codes.InvalidArgument, "record CID is required") //nolint:wrapcheck // Mock should return exact error without wrapping
 	}
 
 	logger.Debug("Using CID from record", "cid", recordCID)
@@ -87,6 +87,7 @@ func (c *store) Push(ctx context.Context, record *corev1.Record) (*corev1.Record
 		if errors.Is(err, afero.ErrFileExists) {
 			return nil, status.Errorf(codes.FailedPrecondition, "file already exists: %v", recordCID)
 		}
+
 		return nil, status.Errorf(codes.Internal, "failed to rename file: %v", err)
 	}
 
@@ -109,6 +110,7 @@ func (c *store) Push(ctx context.Context, record *corev1.Record) (*corev1.Record
 		if errors.Is(err, afero.ErrFileExists) {
 			return nil, status.Errorf(codes.FailedPrecondition, "metadata already exists: %s", recordCID)
 		}
+
 		return nil, status.Errorf(codes.Internal, "failed to store metadata: %v", err)
 	}
 

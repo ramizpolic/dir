@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Helper function to create string pointers
+// Helper function to create string pointers.
 func TestNormalizeTagForOCI(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -414,6 +414,7 @@ func TestReconstructTagsFromRecord(t *testing.T) {
 	tags := reconstructTagsFromRecord(metadata, cid)
 
 	assert.NotEmpty(t, tags, "Should generate tags from metadata")
+
 	normalizedCID := normalizeTagForOCI(cid)
 	assert.Contains(t, tags, normalizedCID, "Should contain normalized CID tag")
 	assert.Contains(t, tags, "test-agent", "Should contain name tag")

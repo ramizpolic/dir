@@ -20,11 +20,11 @@ import (
 
 var internalLogger = logging.Logger("store/oci/internal")
 
-// pushData pushes record data to OCI and returns the blob descriptor
+// pushData pushes record data to OCI and returns the blob descriptor.
 func (s *store) pushData(ctx context.Context, record *corev1.Record) (ocispec.Descriptor, error) {
 	recordCID := record.GetCid()
 	if recordCID == "" {
-		return ocispec.Descriptor{}, status.Error(codes.InvalidArgument, "record CID is required")
+		return ocispec.Descriptor{}, status.Error(codes.InvalidArgument, "record CID is required") //nolint:wrapcheck // Mock should return exact error without wrapping
 	}
 
 	// Marshal the record using canonical JSON marshaling
@@ -62,7 +62,7 @@ func (s *store) pushData(ctx context.Context, record *corev1.Record) (ocispec.De
 	return blobDesc, nil
 }
 
-// findAllTagsForRecord discovers all tags that point to a record's manifest
+// findAllTagsForRecord discovers all tags that point to a record's manifest.
 func (s *store) findAllTagsForRecord(ctx context.Context, cid string) ([]string, error) {
 	// Both local and remote stores have the same limitation:
 	// OCI registries typically don't provide reverse lookup (manifest -> tags)
@@ -70,10 +70,11 @@ func (s *store) findAllTagsForRecord(ctx context.Context, cid string) ([]string,
 	return s.reconstructTagsFromStoredMetadata(ctx, cid)
 }
 
-// reconstructTagsFromStoredMetadata rebuilds discovery tags from stored metadata in the registry
+// reconstructTagsFromStoredMetadata rebuilds discovery tags from stored metadata in the registry.
 func (s *store) reconstructTagsFromStoredMetadata(ctx context.Context, cid string) ([]string, error) {
 	// Get the record metadata from manifest annotations
 	recordRef := &corev1.RecordRef{Cid: cid}
+
 	recordMeta, err := s.Lookup(ctx, recordRef)
 	if err != nil {
 		internalLogger.Debug("Failed to lookup record for tag reconstruction", "cid", cid, "error", err)
@@ -83,11 +84,11 @@ func (s *store) reconstructTagsFromStoredMetadata(ctx context.Context, cid strin
 
 	// Use the shared function from tags.go to ensure perfect synchronization
 	// This eliminates all duplication and ensures tags match exactly
-	return reconstructTagsFromRecord(recordMeta.Annotations, cid), nil
+	return reconstructTagsFromRecord(recordMeta.GetAnnotations(), cid), nil
 }
 
-// cleanupAllTags removes all discovery tags for a record
-func (s *store) cleanupAllTags(ctx context.Context, cid string) error {
+// cleanupAllTags removes all discovery tags for a record.
+func (s *store) cleanupAllTags(ctx context.Context, cid string) {
 	// Find all tags that might point to this record
 	allTags, err := s.findAllTagsForRecord(ctx, cid)
 	if err != nil {
@@ -108,6 +109,7 @@ func (s *store) cleanupAllTags(ctx context.Context, cid string) error {
 			if tag == "" {
 				continue
 			}
+
 			if err := store.Untag(ctx, tag); err != nil {
 				internalLogger.Debug("Failed to untag", "tag", tag, "error", err)
 				cleanupErrors = append(cleanupErrors, fmt.Sprintf("untag %s: %v", tag, err))
@@ -120,6 +122,7 @@ func (s *store) cleanupAllTags(ctx context.Context, cid string) error {
 		// For remote repositories, tag deletion is often not supported via standard OCI APIs
 		// Many registries require manual cleanup or have registry-specific APIs
 		internalLogger.Debug("Tag cleanup not supported for remote repository", "cid", cid, "tags", allTags)
+
 		cleanupErrors = append(cleanupErrors, "remote tag cleanup not supported - manual cleanup may be required")
 	}
 
@@ -129,20 +132,19 @@ func (s *store) cleanupAllTags(ctx context.Context, cid string) error {
 	} else {
 		internalLogger.Info("All discovery tags cleaned up successfully", "cid", cid, "tag_count", len(allTags))
 	}
-
-	return nil // Don't fail delete operation due to tag cleanup issues
 }
 
 // deleteFromOCIStore handles deletion of records from an OCI store.
 func (s *store) deleteFromOCIStore(ctx context.Context, ref *corev1.RecordRef) error {
 	cid := ref.GetCid()
-	store := s.repo.(*oci.Store)
+
+	store, ok := s.repo.(*oci.Store)
+	if !ok {
+		return status.Errorf(codes.Internal, "expected *oci.Store, got %T", s.repo)
+	}
 
 	// ENHANCED: Clean up all discovery tags first
-	if err := s.cleanupAllTags(ctx, cid); err != nil {
-		internalLogger.Debug("Tag cleanup had issues", "cid", cid, "error", err)
-		// Continue with deletion even if tag cleanup failed
-	}
+	s.cleanupAllTags(ctx, cid)
 
 	// Resolve and delete the manifest. Errors are logged but not returned
 	// for the same reason as above.
@@ -158,6 +160,7 @@ func (s *store) deleteFromOCIStore(ctx context.Context, ref *corev1.RecordRef) e
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to get digest from CID: %v", err)
 	}
+
 	blobDesc := ocispec.Descriptor{
 		Digest: ociDigest,
 	}
@@ -166,19 +169,21 @@ func (s *store) deleteFromOCIStore(ctx context.Context, ref *corev1.RecordRef) e
 	}
 
 	internalLogger.Info("Record deleted successfully from OCI store", "cid", cid)
+
 	return nil
 }
 
 // deleteFromRemoteRepository handles deletion of records from a remote repository.
 func (s *store) deleteFromRemoteRepository(ctx context.Context, ref *corev1.RecordRef) error {
 	cid := ref.GetCid()
-	repo := s.repo.(*remote.Repository)
+
+	repo, ok := s.repo.(*remote.Repository)
+	if !ok {
+		return status.Errorf(codes.Internal, "expected *remote.Repository, got %T", s.repo)
+	}
 
 	// ENHANCED: Clean up all discovery tags first
-	if err := s.cleanupAllTags(ctx, cid); err != nil {
-		internalLogger.Debug("Tag cleanup had issues", "cid", cid, "error", err)
-		// Continue with deletion even if tag cleanup failed
-	}
+	s.cleanupAllTags(ctx, cid)
 
 	// Resolve and delete the manifest. Errors are logged but not returned because
 	// the record may exist without being tagged with a manifest.
@@ -194,6 +199,7 @@ func (s *store) deleteFromRemoteRepository(ctx context.Context, ref *corev1.Reco
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to get digest from CID: %v", err)
 	}
+
 	blobDesc := ocispec.Descriptor{
 		Digest: ociDigest,
 	}
@@ -202,5 +208,6 @@ func (s *store) deleteFromRemoteRepository(ctx context.Context, ref *corev1.Reco
 	}
 
 	internalLogger.Info("Record deleted successfully from remote repository", "cid", cid)
+
 	return nil
 }

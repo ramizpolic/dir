@@ -4,7 +4,6 @@
 package oci
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -13,7 +12,9 @@ import (
 	"github.com/agntcy/dir/server/types/adapters"
 )
 
-// extractManifestAnnotations extracts manifest annotations from record using adapter pattern
+// extractManifestAnnotations extracts manifest annotations from record using adapter pattern.
+//
+//nolint:cyclop // Function handles multiple annotation types with justified complexity
 func extractManifestAnnotations(record *corev1.Record) map[string]string {
 	annotations := make(map[string]string)
 
@@ -30,9 +31,12 @@ func extractManifestAnnotations(record *corev1.Record) map[string]string {
 	}
 
 	// Determine OASF version
-	if record.GetV1() != nil {
+	switch record.GetData().(type) {
+	case *corev1.Record_V1:
 		annotations[ManifestKeyOASFVersion] = "v1"
-	} else if record.GetV3() != nil {
+	case *corev1.Record_V2:
+		annotations[ManifestKeyOASFVersion] = "v2"
+	case *corev1.Record_V3:
 		annotations[ManifestKeyOASFVersion] = "v3"
 	}
 
@@ -40,9 +44,11 @@ func extractManifestAnnotations(record *corev1.Record) map[string]string {
 	if name := recordData.GetName(); name != "" {
 		annotations[ManifestKeyName] = name
 	}
+
 	if version := recordData.GetVersion(); version != "" {
 		annotations[ManifestKeyVersion] = version
 	}
+
 	if description := recordData.GetDescription(); description != "" {
 		annotations[ManifestKeyDescription] = description
 	}
@@ -51,9 +57,11 @@ func extractManifestAnnotations(record *corev1.Record) map[string]string {
 	if schemaVersion := recordData.GetSchemaVersion(); schemaVersion != "" {
 		annotations[ManifestKeySchemaVersion] = schemaVersion
 	}
+
 	if createdAt := recordData.GetCreatedAt(); createdAt != "" {
 		annotations[ManifestKeyCreatedAt] = createdAt
 	}
+
 	if authors := recordData.GetAuthors(); len(authors) > 0 {
 		annotations[ManifestKeyAuthors] = strings.Join(authors, ",")
 	}
@@ -64,6 +72,7 @@ func extractManifestAnnotations(record *corev1.Record) map[string]string {
 		for i, skill := range skills {
 			skillNames[i] = skill.GetName()
 		}
+
 		annotations[ManifestKeySkills] = strings.Join(skillNames, ",")
 	}
 
@@ -73,6 +82,7 @@ func extractManifestAnnotations(record *corev1.Record) map[string]string {
 		for i, locator := range locators {
 			locatorTypes[i] = locator.GetType()
 		}
+
 		annotations[ManifestKeyLocatorTypes] = strings.Join(locatorTypes, ",")
 	}
 
@@ -82,6 +92,7 @@ func extractManifestAnnotations(record *corev1.Record) map[string]string {
 		for i, extension := range extensions {
 			extensionNames[i] = extension.GetName()
 		}
+
 		annotations[ManifestKeyExtensionNames] = strings.Join(extensionNames, ",")
 	}
 
@@ -91,6 +102,7 @@ func extractManifestAnnotations(record *corev1.Record) map[string]string {
 		if algorithm := signature.GetAlgorithm(); algorithm != "" {
 			annotations[ManifestKeySignatureAlgo] = algorithm
 		}
+
 		if signedAt := signature.GetSignedAt(); signedAt != "" {
 			annotations[ManifestKeySignedAt] = signedAt
 		}
@@ -113,7 +125,7 @@ func extractManifestAnnotations(record *corev1.Record) map[string]string {
 	return annotations
 }
 
-// createDescriptorAnnotations creates descriptor annotations for technical metadata
+// createDescriptorAnnotations creates descriptor annotations for technical metadata.
 func createDescriptorAnnotations(record *corev1.Record) map[string]string {
 	annotations := make(map[string]string)
 
@@ -123,11 +135,14 @@ func createDescriptorAnnotations(record *corev1.Record) map[string]string {
 	annotations[DescriptorKeyCompression] = "none"
 
 	// Schema information based on record version
-	if record.GetV1() != nil {
+	switch record.GetData().(type) {
+	case *corev1.Record_V1:
 		annotations[DescriptorKeySchema] = "oasf.v1.Agent"
-	} else if record.GetV3() != nil {
+	case *corev1.Record_V2:
+		annotations[DescriptorKeySchema] = "oasf.v2.AgentRecord"
+	case *corev1.Record_V3:
 		annotations[DescriptorKeySchema] = "oasf.v3.Record"
-	} else {
+	default:
 		annotations[DescriptorKeySchema] = "unknown"
 	}
 
@@ -136,11 +151,22 @@ func createDescriptorAnnotations(record *corev1.Record) map[string]string {
 
 	// Check if record has signature
 	hasSig := false
-	if v1 := record.GetV1(); v1 != nil && v1.GetSignature() != nil {
-		hasSig = true
-	} else if v3 := record.GetV3(); v3 != nil && v3.GetSignature() != nil {
-		hasSig = true
+
+	switch data := record.GetData().(type) {
+	case *corev1.Record_V1:
+		if data.V1 != nil && data.V1.GetSignature() != nil {
+			hasSig = true
+		}
+	case *corev1.Record_V2:
+		if data.V2 != nil && data.V2.GetSignature() != nil {
+			hasSig = true
+		}
+	case *corev1.Record_V3:
+		if data.V3 != nil && data.V3.GetSignature() != nil {
+			hasSig = true
+		}
 	}
+
 	annotations[DescriptorKeySigned] = strconv.FormatBool(hasSig)
 
 	// Storage information
@@ -150,7 +176,9 @@ func createDescriptorAnnotations(record *corev1.Record) map[string]string {
 	return annotations
 }
 
-// parseManifestAnnotations extracts structured metadata from manifest annotations
+// parseManifestAnnotations extracts structured metadata from manifest annotations.
+//
+//nolint:cyclop // Function handles multiple metadata extraction paths with justified complexity
 func parseManifestAnnotations(annotations map[string]string) *corev1.RecordMeta {
 	recordMeta := &corev1.RecordMeta{
 		Annotations: make(map[string]string),
@@ -178,12 +206,15 @@ func parseManifestAnnotations(annotations map[string]string) *corev1.RecordMeta 
 	if name := annotations[ManifestKeyName]; name != "" {
 		recordMeta.Annotations[MetadataKeyName] = name
 	}
+
 	if version := annotations[ManifestKeyVersion]; version != "" {
 		recordMeta.Annotations[MetadataKeyVersion] = version
 	}
+
 	if description := annotations[ManifestKeyDescription]; description != "" {
 		recordMeta.Annotations[MetadataKeyDescription] = description
 	}
+
 	if oasfVersion := annotations[ManifestKeyOASFVersion]; oasfVersion != "" {
 		recordMeta.Annotations[MetadataKeyOASFVersion] = oasfVersion
 	}
@@ -193,34 +224,37 @@ func parseManifestAnnotations(annotations map[string]string) *corev1.RecordMeta 
 		recordMeta.Annotations[MetadataKeyAuthors] = authors // comma-separated
 		// Also provide parsed count for quick stats
 		authorList := parseCommaSeparated(authors)
-		recordMeta.Annotations[MetadataKeyAuthorsCount] = fmt.Sprintf("%d", len(authorList))
+		recordMeta.Annotations[MetadataKeyAuthorsCount] = strconv.Itoa(len(authorList))
 	}
 
 	if skills := annotations[ManifestKeySkills]; skills != "" {
 		recordMeta.Annotations[MetadataKeySkills] = skills // comma-separated
 		skillList := parseCommaSeparated(skills)
-		recordMeta.Annotations[MetadataKeySkillsCount] = fmt.Sprintf("%d", len(skillList))
+		recordMeta.Annotations[MetadataKeySkillsCount] = strconv.Itoa(len(skillList))
 	}
 
 	if locatorTypes := annotations[ManifestKeyLocatorTypes]; locatorTypes != "" {
 		recordMeta.Annotations[MetadataKeyLocatorTypes] = locatorTypes // comma-separated
 		locatorList := parseCommaSeparated(locatorTypes)
-		recordMeta.Annotations[MetadataKeyLocatorTypesCount] = fmt.Sprintf("%d", len(locatorList))
+		recordMeta.Annotations[MetadataKeyLocatorTypesCount] = strconv.Itoa(len(locatorList))
 	}
 
 	if extensionNames := annotations[ManifestKeyExtensionNames]; extensionNames != "" {
 		recordMeta.Annotations[MetadataKeyExtensionNames] = extensionNames // comma-separated
 		extensionList := parseCommaSeparated(extensionNames)
-		recordMeta.Annotations[MetadataKeyExtensionCount] = fmt.Sprintf("%d", len(extensionList))
+		recordMeta.Annotations[MetadataKeyExtensionCount] = strconv.Itoa(len(extensionList))
 	}
 
 	// Security information (structured and easily accessible)
+	//nolint:nestif // Nested structure needed for conditional signature metadata extraction
 	if signedStr := annotations[ManifestKeySigned]; signedStr != "" {
 		recordMeta.Annotations[MetadataKeySigned] = signedStr
+
 		if signedStr == "true" {
 			if algorithm := annotations[ManifestKeySignatureAlgo]; algorithm != "" {
 				recordMeta.Annotations[MetadataKeySignatureAlgo] = algorithm
 			}
+
 			if signedAt := annotations[ManifestKeySignedAt]; signedAt != "" {
 				recordMeta.Annotations[MetadataKeySignedAt] = signedAt
 			}
@@ -243,7 +277,7 @@ func parseManifestAnnotations(annotations map[string]string) *corev1.RecordMeta 
 	return recordMeta
 }
 
-// parseCommaSeparated splits comma-separated values and trims whitespace
+// parseCommaSeparated splits comma-separated values and trims whitespace.
 func parseCommaSeparated(value string) []string {
 	if value == "" {
 		return nil

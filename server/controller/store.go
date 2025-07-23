@@ -14,6 +14,7 @@ import (
 	"github.com/agntcy/dir/utils/logging"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -44,8 +45,10 @@ func (s storeCtrl) Push(stream storetypes.StoreService_PushServer) error {
 		record, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
 			storeLogger.Debug("Push stream completed")
+
 			return nil
 		}
+
 		if err != nil {
 			return status.Errorf(codes.Internal, "failed to receive record: %v", err)
 		}
@@ -55,12 +58,21 @@ func (s storeCtrl) Push(stream storetypes.StoreService_PushServer) error {
 			return status.Error(codes.InvalidArgument, "record has no data")
 		}
 
-		storeLogger.Debug("Processing record", "hasData", record.GetData() != nil)
+		// Validate record size (4MB limit for v1alpha2 API)
+		recordSize := proto.Size(record)
+		if recordSize > maxAgentSize {
+			storeLogger.Warn("Record exceeds size limit", "size", recordSize, "limit", maxAgentSize)
+
+			return status.Errorf(codes.InvalidArgument, "record size %d bytes exceeds maximum allowed size of %d bytes (4MB)", recordSize, maxAgentSize)
+		}
+
+		storeLogger.Debug("Processing record", "hasData", record.GetData() != nil, "size", recordSize)
 
 		// Calculate CID for the record using the GetCid method
 		recordCID := record.GetCid()
 		if recordCID == "" {
 			storeLogger.Error("Failed to calculate record CID")
+
 			return status.Error(codes.Internal, "failed to calculate record CID")
 		}
 
@@ -68,21 +80,26 @@ func (s storeCtrl) Push(stream storetypes.StoreService_PushServer) error {
 
 		// Check if record already exists in store
 		recordRef := &corev1.RecordRef{Cid: recordCID}
+
 		_, err = s.store.Lookup(stream.Context(), recordRef)
 		if err == nil {
 			// Record already exists, return existing reference
 			storeLogger.Info("Record already exists in store", "cid", recordCID)
+
 			if err := stream.Send(recordRef); err != nil {
 				return status.Errorf(codes.Internal, "failed to send existing record reference: %v", err)
 			}
+
 			continue
 		}
 
 		// Record doesn't exist, push to store (with CID already set)
 		storeLogger.Debug("Record not found in store, pushing", "cid", recordCID)
+
 		pushedRef, err := s.store.Push(stream.Context(), record)
 		if err != nil {
 			storeLogger.Error("Failed to push record to store", "error", err, "cid", recordCID)
+
 			return status.Errorf(codes.Internal, "failed to push record to store: %v", err)
 		}
 
@@ -103,8 +120,10 @@ func (s storeCtrl) Pull(stream storetypes.StoreService_PullServer) error {
 		recordRef, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
 			storeLogger.Debug("Pull stream completed")
+
 			return nil
 		}
+
 		if err != nil {
 			return status.Errorf(codes.Internal, "failed to receive record reference: %v", err)
 		}
@@ -120,6 +139,7 @@ func (s storeCtrl) Pull(stream storetypes.StoreService_PullServer) error {
 		_, err = s.store.Lookup(stream.Context(), recordRef)
 		if err != nil {
 			st := status.Convert(err)
+
 			return status.Errorf(st.Code(), "failed to lookup record: %s", st.Message())
 		}
 
@@ -127,6 +147,7 @@ func (s storeCtrl) Pull(stream storetypes.StoreService_PullServer) error {
 		record, err := s.store.Pull(stream.Context(), recordRef)
 		if err != nil {
 			st := status.Convert(err)
+
 			return status.Errorf(st.Code(), "failed to pull record: %s", st.Message())
 		}
 
@@ -147,8 +168,10 @@ func (s storeCtrl) Lookup(stream storetypes.StoreService_LookupServer) error {
 		recordRef, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
 			storeLogger.Debug("Lookup stream completed")
+
 			return nil
 		}
+
 		if err != nil {
 			return status.Errorf(codes.Internal, "failed to receive record reference: %v", err)
 		}
@@ -164,6 +187,7 @@ func (s storeCtrl) Lookup(stream storetypes.StoreService_LookupServer) error {
 		recordMeta, err := s.store.Lookup(stream.Context(), recordRef)
 		if err != nil {
 			st := status.Convert(err)
+
 			return status.Errorf(st.Code(), "failed to lookup record: %s", st.Message())
 		}
 
@@ -184,8 +208,10 @@ func (s storeCtrl) Delete(stream storetypes.StoreService_DeleteServer) error {
 		recordRef, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
 			storeLogger.Debug("Delete stream completed")
+
 			return nil
 		}
+
 		if err != nil {
 			return status.Errorf(codes.Internal, "failed to receive record reference: %v", err)
 		}
@@ -201,6 +227,7 @@ func (s storeCtrl) Delete(stream storetypes.StoreService_DeleteServer) error {
 		err = s.store.Delete(stream.Context(), recordRef)
 		if err != nil {
 			st := status.Convert(err)
+
 			return status.Errorf(st.Code(), "failed to delete record: %s", st.Message())
 		}
 

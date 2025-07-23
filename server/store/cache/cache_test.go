@@ -16,33 +16,64 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// MockStoreAPI is a mock implementation of types.StoreAPI for testing
+// MockStoreAPI is a mock implementation of types.StoreAPI for testing.
 type MockStoreAPI struct {
 	mock.Mock
 }
 
 func (m *MockStoreAPI) Push(ctx context.Context, record *corev1.Record) (*corev1.RecordRef, error) {
 	args := m.Called(ctx, record)
-	return args.Get(0).(*corev1.RecordRef), args.Error(1)
+
+	if args.Get(0) == nil {
+		return nil, args.Error(1) //nolint:wrapcheck // Mock should return exact error without wrapping
+	}
+
+	ref, ok := args.Get(0).(*corev1.RecordRef)
+	if !ok {
+		panic("MockStoreAPI.Push: expected *corev1.RecordRef, got different type")
+	}
+
+	return ref, args.Error(1) //nolint:wrapcheck // Mock should return exact error without wrapping
 }
 
 func (m *MockStoreAPI) Pull(ctx context.Context, ref *corev1.RecordRef) (*corev1.Record, error) {
 	args := m.Called(ctx, ref)
-	return args.Get(0).(*corev1.Record), args.Error(1)
+
+	if args.Get(0) == nil {
+		return nil, args.Error(1) //nolint:wrapcheck // Mock should return exact error without wrapping
+	}
+
+	record, ok := args.Get(0).(*corev1.Record)
+	if !ok {
+		panic("MockStoreAPI.Pull: expected *corev1.Record, got different type")
+	}
+
+	return record, args.Error(1) //nolint:wrapcheck // Mock should return exact error without wrapping
 }
 
 func (m *MockStoreAPI) Lookup(ctx context.Context, ref *corev1.RecordRef) (*corev1.RecordMeta, error) {
 	args := m.Called(ctx, ref)
-	return args.Get(0).(*corev1.RecordMeta), args.Error(1)
+
+	if args.Get(0) == nil {
+		return nil, args.Error(1) //nolint:wrapcheck // Mock should return exact error without wrapping
+	}
+
+	meta, ok := args.Get(0).(*corev1.RecordMeta)
+	if !ok {
+		panic("MockStoreAPI.Lookup: expected *corev1.RecordMeta, got different type")
+	}
+
+	return meta, args.Error(1) //nolint:wrapcheck // Mock should return exact error without wrapping
 }
 
 func (m *MockStoreAPI) Delete(ctx context.Context, ref *corev1.RecordRef) error {
 	args := m.Called(ctx, ref)
-	return args.Error(0)
+
+	return args.Error(0) //nolint:wrapcheck // Mock should return exact error without wrapping
 }
 
 func TestCachedStore_Push(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create test record
 	record := &corev1.Record{
@@ -63,7 +94,8 @@ func TestCachedStore_Push(t *testing.T) {
 	// Create mock store and cache
 	mockStore := &MockStoreAPI{}
 	cache := sync.MutexWrap(datastore.NewMapDatastore())
-	cachedStore := Wrap(mockStore, cache)
+	cachedStore, ok := Wrap(mockStore, cache).(*cachedStore)
+	require.True(t, ok, "Wrap should return *cachedStore")
 
 	// Mock the Push call
 	mockStore.On("Push", ctx, record).Return(expectedRef, nil)
@@ -83,7 +115,7 @@ func TestCachedStore_Push(t *testing.T) {
 }
 
 func TestCachedStore_Pull_CacheHit(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create test record
 	record := &corev1.Record{
@@ -102,7 +134,8 @@ func TestCachedStore_Pull_CacheHit(t *testing.T) {
 	// Create mock store and cache
 	mockStore := &MockStoreAPI{}
 	cache := sync.MutexWrap(datastore.NewMapDatastore())
-	cachedStore := Wrap(mockStore, cache).(*cachedStore)
+	cachedStore, ok := Wrap(mockStore, cache).(*cachedStore)
+	require.True(t, ok, "Wrap should return *cachedStore")
 
 	// Pre-cache the record
 	err := cachedStore.cacheRecord(ctx, record)
@@ -118,7 +151,7 @@ func TestCachedStore_Pull_CacheHit(t *testing.T) {
 }
 
 func TestCachedStore_Pull_CacheMiss(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create test record
 	record := &corev1.Record{
@@ -157,7 +190,7 @@ func TestCachedStore_Pull_CacheMiss(t *testing.T) {
 }
 
 func TestCachedStore_Lookup_CacheHit(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	recordCID := "test-cid-123"
 	ref := &corev1.RecordRef{Cid: recordCID}
@@ -172,7 +205,8 @@ func TestCachedStore_Lookup_CacheHit(t *testing.T) {
 	// Create mock store and cache
 	mockStore := &MockStoreAPI{}
 	cache := sync.MutexWrap(datastore.NewMapDatastore())
-	cachedStore := Wrap(mockStore, cache).(*cachedStore)
+	cachedStore, ok := Wrap(mockStore, cache).(*cachedStore)
+	require.True(t, ok, "Wrap should return *cachedStore")
 
 	// Pre-cache the metadata
 	err := cachedStore.cacheMeta(ctx, meta)
@@ -189,7 +223,7 @@ func TestCachedStore_Lookup_CacheHit(t *testing.T) {
 }
 
 func TestCachedStore_Lookup_CacheMiss(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	recordCID := "test-cid-123"
 	ref := &corev1.RecordRef{Cid: recordCID}
@@ -225,7 +259,7 @@ func TestCachedStore_Lookup_CacheMiss(t *testing.T) {
 }
 
 func TestCachedStore_Delete(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create test record and metadata
 	record := &corev1.Record{

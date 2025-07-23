@@ -7,6 +7,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	corev1 "github.com/agntcy/dir/api/core/v1"
@@ -18,13 +19,13 @@ import (
 
 var logger = logging.Logger("store/cache")
 
-// cachedStore wraps a StoreAPI with caching functionality
+// cachedStore wraps a StoreAPI with caching functionality.
 type cachedStore struct {
 	source types.StoreAPI
 	cache  types.Datastore
 }
 
-// Wrap creates a cached store that uses the provided datastore as a cache
+// Wrap creates a cached store that uses the provided datastore as a cache.
 func Wrap(source types.StoreAPI, cache types.Datastore) types.StoreAPI {
 	return &cachedStore{
 		source: source,
@@ -32,7 +33,7 @@ func Wrap(source types.StoreAPI, cache types.Datastore) types.StoreAPI {
 	}
 }
 
-// Push pushes a record to the source store and caches it
+// Push pushes a record to the source store and caches it.
 func (s *cachedStore) Push(ctx context.Context, record *corev1.Record) (*corev1.RecordRef, error) {
 	logger.Debug("Push: forwarding to source store")
 
@@ -51,7 +52,7 @@ func (s *cachedStore) Push(ctx context.Context, record *corev1.Record) (*corev1.
 	return ref, nil
 }
 
-// Pull pulls a record from cache first, then from source store if not found
+// Pull pulls a record from cache first, then from source store if not found.
 func (s *cachedStore) Pull(ctx context.Context, ref *corev1.RecordRef) (*corev1.Record, error) {
 	cid := ref.GetCid()
 	logger.Debug("Pull: checking cache first", "cid", cid)
@@ -59,6 +60,7 @@ func (s *cachedStore) Pull(ctx context.Context, ref *corev1.RecordRef) (*corev1.
 	// Try to get from cache first
 	if record, err := s.getRecordFromCache(ctx, cid); err == nil {
 		logger.Debug("Pull: cache hit", "cid", cid)
+
 		return record, nil
 	}
 
@@ -79,7 +81,7 @@ func (s *cachedStore) Pull(ctx context.Context, ref *corev1.RecordRef) (*corev1.
 	return record, nil
 }
 
-// Lookup looks up record metadata from cache first, then from source store if not found
+// Lookup looks up record metadata from cache first, then from source store if not found.
 func (s *cachedStore) Lookup(ctx context.Context, ref *corev1.RecordRef) (*corev1.RecordMeta, error) {
 	cid := ref.GetCid()
 	logger.Debug("Lookup: checking cache first", "cid", cid)
@@ -87,6 +89,7 @@ func (s *cachedStore) Lookup(ctx context.Context, ref *corev1.RecordRef) (*corev
 	// Try to get metadata from cache first
 	if meta, err := s.getMetaFromCache(ctx, cid); err == nil {
 		logger.Debug("Lookup: cache hit", "cid", cid)
+
 		return meta, nil
 	}
 
@@ -107,7 +110,7 @@ func (s *cachedStore) Lookup(ctx context.Context, ref *corev1.RecordRef) (*corev
 	return meta, nil
 }
 
-// Delete removes a record from both cache and source store
+// Delete removes a record from both cache and source store.
 func (s *cachedStore) Delete(ctx context.Context, ref *corev1.RecordRef) error {
 	cid := ref.GetCid()
 	logger.Debug("Delete: removing from cache and source store", "cid", cid)
@@ -119,11 +122,11 @@ func (s *cachedStore) Delete(ctx context.Context, ref *corev1.RecordRef) error {
 	return s.source.Delete(ctx, ref)
 }
 
-// cacheRecord stores a record in the cache
+// cacheRecord stores a record in the cache.
 func (s *cachedStore) cacheRecord(ctx context.Context, record *corev1.Record) error {
 	cid := record.GetCid()
 	if cid == "" {
-		return fmt.Errorf("record has no CID")
+		return errors.New("record has no CID")
 	}
 
 	// Marshal record to bytes
@@ -133,13 +136,14 @@ func (s *cachedStore) cacheRecord(ctx context.Context, record *corev1.Record) er
 	}
 
 	// Store in cache with record key
-	key := datastore.NewKey(fmt.Sprintf("/record/%s", cid))
+	key := datastore.NewKey("/record/" + cid)
+
 	return s.cache.Put(ctx, key, data)
 }
 
-// getRecordFromCache retrieves a record from the cache
+// getRecordFromCache retrieves a record from the cache.
 func (s *cachedStore) getRecordFromCache(ctx context.Context, cid string) (*corev1.Record, error) {
-	key := datastore.NewKey(fmt.Sprintf("/record/%s", cid))
+	key := datastore.NewKey("/record/" + cid)
 
 	data, err := s.cache.Get(ctx, key)
 	if err != nil {
@@ -155,11 +159,11 @@ func (s *cachedStore) getRecordFromCache(ctx context.Context, cid string) (*core
 	return &record, nil
 }
 
-// cacheMeta stores record metadata in the cache
+// cacheMeta stores record metadata in the cache.
 func (s *cachedStore) cacheMeta(ctx context.Context, meta *corev1.RecordMeta) error {
 	cid := meta.GetCid()
 	if cid == "" {
-		return fmt.Errorf("metadata has no CID")
+		return errors.New("metadata has no CID")
 	}
 
 	// Marshal metadata to JSON (since it's not a protobuf message)
@@ -169,13 +173,14 @@ func (s *cachedStore) cacheMeta(ctx context.Context, meta *corev1.RecordMeta) er
 	}
 
 	// Store in cache with metadata key
-	key := datastore.NewKey(fmt.Sprintf("/meta/%s", cid))
+	key := datastore.NewKey("/meta/" + cid)
+
 	return s.cache.Put(ctx, key, data)
 }
 
-// getMetaFromCache retrieves record metadata from the cache
+// getMetaFromCache retrieves record metadata from the cache.
 func (s *cachedStore) getMetaFromCache(ctx context.Context, cid string) (*corev1.RecordMeta, error) {
-	key := datastore.NewKey(fmt.Sprintf("/meta/%s", cid))
+	key := datastore.NewKey("/meta/" + cid)
 
 	data, err := s.cache.Get(ctx, key)
 	if err != nil {
@@ -191,10 +196,10 @@ func (s *cachedStore) getMetaFromCache(ctx context.Context, cid string) (*corev1
 	return &meta, nil
 }
 
-// removeFromCache removes both record and metadata from cache
+// removeFromCache removes both record and metadata from cache.
 func (s *cachedStore) removeFromCache(ctx context.Context, cid string) {
-	recordKey := datastore.NewKey(fmt.Sprintf("/record/%s", cid))
-	metaKey := datastore.NewKey(fmt.Sprintf("/meta/%s", cid))
+	recordKey := datastore.NewKey("/record/" + cid)
+	metaKey := datastore.NewKey("/meta/" + cid)
 
 	// Remove record (ignore errors)
 	if err := s.cache.Delete(ctx, recordKey); err != nil {

@@ -1,3 +1,6 @@
+// Copyright AGNTCY Contributors (https://github.com/agntcy)
+// SPDX-License-Identifier: Apache-2.0
+
 package adapters
 
 import (
@@ -8,22 +11,22 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-// RecordAdapter adapts corev1.Record to types.Record interface
+// RecordAdapter adapts corev1.Record to types.Record interface.
 type RecordAdapter struct {
 	record *corev1.Record
 }
 
-// NewRecordAdapter creates a new RecordAdapter
+// NewRecordAdapter creates a new RecordAdapter.
 func NewRecordAdapter(record *corev1.Record) *RecordAdapter {
 	return &RecordAdapter{record: record}
 }
 
-// GetCid implements types.Record interface
+// GetCid implements types.Record interface.
 func (r *RecordAdapter) GetCid() string {
 	return r.record.GetCid()
 }
 
-// GetRecordData implements types.Record interface
+// GetRecordData implements types.Record interface.
 func (r *RecordAdapter) GetRecordData() types.RecordData {
 	switch data := r.record.GetData().(type) {
 	case *corev1.Record_V1:
@@ -37,23 +40,26 @@ func (r *RecordAdapter) GetRecordData() types.RecordData {
 	}
 }
 
-// convertStructToMap converts a protobuf Struct to a map[string]any
+// convertStructToMap converts a protobuf Struct to a map[string]any.
 func convertStructToMap(s *structpb.Struct) map[string]any {
 	if s == nil {
 		return nil
 	}
+
 	result := make(map[string]any)
 	for k, v := range s.GetFields() {
 		result[k] = convertValue(v)
 	}
+
 	return result
 }
 
-// convertValue converts a protobuf Value to any
+// convertValue converts a protobuf Value to any.
 func convertValue(v *structpb.Value) any {
 	if v == nil {
 		return nil
 	}
+
 	switch v := v.GetKind().(type) {
 	case *structpb.Value_NullValue:
 		return nil
@@ -70,6 +76,7 @@ func convertValue(v *structpb.Value) any {
 		for i, item := range v.ListValue.GetValues() {
 			result[i] = convertValue(item)
 		}
+
 		return result
 	default:
 		return fmt.Sprintf("unsupported type: %T", v)

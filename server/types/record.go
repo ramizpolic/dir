@@ -19,7 +19,9 @@ type RecordRef interface {
 	GetCid() string
 }
 
-// Core abstraction interfaces
+// Core abstraction interfaces.
+//
+//nolint:interfacebloat // RecordData is a cohesive interface for all record data operations
 type RecordData interface {
 	GetAnnotations() map[string]string
 	GetSchemaVersion() string
@@ -55,13 +57,13 @@ type Extension interface {
 type Skill interface {
 	GetAnnotations() map[string]string
 	GetName() string
-	GetId() uint64
+	GetID() uint64
 }
 
 type Locator interface {
 	GetAnnotations() map[string]string
 	GetType() string
-	GetUrl() string
+	GetURL() string
 	GetSize() uint64
 	GetDigest() string
 }

@@ -16,7 +16,6 @@ import (
 	"github.com/agntcy/dir/server/datastore"
 	"github.com/agntcy/dir/server/store/cache"
 	ociconfig "github.com/agntcy/dir/server/store/oci/config"
-
 	"github.com/agntcy/dir/server/types"
 	"github.com/agntcy/dir/utils/logging"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -122,6 +121,7 @@ func (s *store) Push(ctx context.Context, record *corev1.Record) (*corev1.Record
 	// Check if record already exists
 	if _, err := s.Lookup(ctx, recordRef); err == nil {
 		logger.Info("Record already exists in OCI store", "cid", recordCID)
+
 		return recordRef, nil
 	}
 
@@ -152,7 +152,7 @@ func (s *store) Push(ctx context.Context, record *corev1.Record) (*corev1.Record
 	logger.Debug("Generated discovery tags", "cid", recordCID, "tags", discoveryTags, "count", len(discoveryTags))
 
 	// Push manifest with multiple tags
-	// tags => resolve manifest to record which can be looked up (lookup)
+	// => resolve manifest to record which can be looked up (lookup)
 	// tags => allow to pull record directly (pull)
 	// tags => allow listing and filtering tags (list)
 	err = s.pushManifestWithTags(ctx, manifestDesc, discoveryTags)
@@ -249,6 +249,7 @@ func (s *store) Pull(ctx context.Context, ref *corev1.RecordRef) (*corev1.Record
 	manifestDesc, err := s.repo.Resolve(ctx, ref.GetCid())
 	if err != nil {
 		logger.Error("Failed to resolve manifest for pull", "cid", ref.GetCid(), "error", err)
+
 		return nil, status.Errorf(codes.NotFound, "record not found: %s", ref.GetCid())
 	}
 

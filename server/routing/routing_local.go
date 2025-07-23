@@ -41,11 +41,11 @@ func (r *routeLocal) Publish(ctx context.Context, ref *corev1.RecordRef, record 
 
 	// Validate input parameters
 	if ref == nil {
-		return status.Error(codes.InvalidArgument, "record reference is required")
+		return status.Error(codes.InvalidArgument, "record reference is required") //nolint:wrapcheck // Mock should return exact error without wrapping
 	}
 
 	if record == nil {
-		return status.Error(codes.InvalidArgument, "record is required")
+		return status.Error(codes.InvalidArgument, "record is required") //nolint:wrapcheck // Mock should return exact error without wrapping
 	}
 
 	metrics, err := loadMetrics(ctx, r.dstore)
@@ -228,11 +228,11 @@ func (r *routeLocal) Unpublish(ctx context.Context, ref *corev1.RecordRef, recor
 
 	// Validate input parameters
 	if ref == nil {
-		return status.Error(codes.InvalidArgument, "record reference is required")
+		return status.Error(codes.InvalidArgument, "record reference is required") //nolint:wrapcheck // Mock should return exact error without wrapping
 	}
 
 	if record == nil {
-		return status.Error(codes.InvalidArgument, "record is required")
+		return status.Error(codes.InvalidArgument, "record is required") //nolint:wrapcheck // Mock should return exact error without wrapping
 	}
 
 	// load metrics for the client

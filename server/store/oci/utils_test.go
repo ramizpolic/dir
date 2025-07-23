@@ -13,6 +13,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	// testCIDv0 is a well-known test CID used across multiple test cases.
+	testCIDv0 = "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"
+)
+
 func TestGetDigestFromCID(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -22,7 +27,7 @@ func TestGetDigestFromCID(t *testing.T) {
 	}{
 		{
 			name:        "Valid CIDv0",
-			cidString:   "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG", // Well-known test CID
+			cidString:   testCIDv0, // Well-known test CID
 			expectError: false,
 		},
 		{
@@ -61,15 +66,15 @@ func TestGetDigestFromCID(t *testing.T) {
 			digest, err := getDigestFromCID(tt.cidString)
 
 			if tt.expectError {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errorMsg)
 				assert.Empty(t, digest)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.NotEmpty(t, digest)
 
 				// Verify the digest is a valid OCI digest
-				assert.True(t, digest.Validate() == nil, "Generated digest should be valid")
+				require.NoError(t, digest.Validate(), "Digest should be valid OCI digest")
 
 				// Verify the digest uses SHA256 algorithm (as expected from the implementation)
 				assert.Equal(t, ocidigest.SHA256, digest.Algorithm())
@@ -80,7 +85,7 @@ func TestGetDigestFromCID(t *testing.T) {
 
 func TestGetDigestFromCID_ConsistentResults(t *testing.T) {
 	// Test that the same CID always produces the same digest
-	cidString := "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"
+	cidString := testCIDv0
 
 	digest1, err1 := getDigestFromCID(cidString)
 	require.NoError(t, err1)
@@ -93,14 +98,14 @@ func TestGetDigestFromCID_ConsistentResults(t *testing.T) {
 
 func TestGetDigestFromCID_MatchesExpectedFormat(t *testing.T) {
 	// Create a known CID and verify the digest format
-	cidString := "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"
+	cidString := testCIDv0
 
 	digest, err := getDigestFromCID(cidString)
 	require.NoError(t, err)
 
 	// Verify digest format (should be sha256:...)
-	assert.True(t, len(digest.String()) > 7, "Digest string should have reasonable length")
-	assert.True(t, digest.Validate() == nil, "Digest should be valid OCI digest")
+	assert.Greater(t, len(digest.String()), 7, "Digest string should have reasonable length")
+	assert.NoError(t, digest.Validate(), "Digest should be valid OCI digest") //nolint:testifylint // Test should not fail
 
 	// Verify we can decode the original CID to compare
 	originalCID, err := cid.Decode(cidString)
@@ -118,7 +123,7 @@ func TestGetDigestFromCID_MatchesExpectedFormat(t *testing.T) {
 
 func TestGetDigestFromCID_DifferentCIDsProduceDifferentDigests(t *testing.T) {
 	// Test that different CIDs produce different digests
-	cid1 := "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"
+	cid1 := testCIDv0
 	cid2 := "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB" // Different CID
 
 	digest1, err1 := getDigestFromCID(cid1)

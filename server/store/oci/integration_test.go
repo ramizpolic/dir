@@ -21,13 +21,13 @@ import (
 )
 
 const (
-	// Integration test configuration
+	// Integration test configuration.
 	integrationRegistryAddress = "localhost:5555"
 	integrationRepositoryName  = "integration-test"
 	integrationTimeout         = 30 * time.Minute
 )
 
-// Integration test configuration
+// Integration test configuration.
 var integrationConfig = ociconfig.Config{
 	RegistryAddress: integrationRegistryAddress,
 	RepositoryName:  integrationRepositoryName,
@@ -36,7 +36,7 @@ var integrationConfig = ociconfig.Config{
 	},
 }
 
-// createTestRecord creates a comprehensive test record for integration testing
+// createTestRecord creates a comprehensive test record for integration testing.
 func createTestRecord() *corev1.Record {
 	return &corev1.Record{
 		Data: &corev1.Record_V1{
@@ -69,16 +69,16 @@ func createTestRecord() *corev1.Record {
 	}
 }
 
-// setupIntegrationStore creates a store connected to the local zot registry
+// setupIntegrationStore creates a store connected to the local zot registry.
 func setupIntegrationStore(t *testing.T) types.StoreAPI {
 	t.Helper()
 
 	// Check if zot registry is available
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
 	client := &http.Client{Timeout: 2 * time.Second}
-	req, err := http.NewRequestWithContext(ctx, "GET", "http://"+integrationRegistryAddress+"/v2/", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+integrationRegistryAddress+"/v2/", nil)
 	require.NoError(t, err, "Failed to create registry health check request")
 
 	resp, err := client.Do(req)
@@ -98,14 +98,17 @@ func setupIntegrationStore(t *testing.T) types.StoreAPI {
 	return store
 }
 
-// getRegistryTags fetches all tags for the repository from zot registry
-func getRegistryTags(t *testing.T) []string {
+// getRegistryTags fetches all tags for the repository from zot registry.
+func getRegistryTags(ctx context.Context, t *testing.T) []string {
 	t.Helper()
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	url := fmt.Sprintf("http://%s/v2/%s/tags/list", integrationRegistryAddress, integrationRepositoryName)
 
-	resp, err := client.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	require.NoError(t, err, "Failed to create tags request")
+
+	resp, err := client.Do(req)
 	require.NoError(t, err, "Failed to fetch tags from registry")
 	defer resp.Body.Close()
 
@@ -126,14 +129,14 @@ func getRegistryTags(t *testing.T) []string {
 	return response.Tags
 }
 
-// getManifest fetches manifest for a specific tag from zot registry
-func getManifest(t *testing.T, tag string) map[string]interface{} {
+// getManifest fetches manifest for a specific tag from zot registry.
+func getManifest(ctx context.Context, t *testing.T, tag string) map[string]interface{} {
 	t.Helper()
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	url := fmt.Sprintf("http://%s/v2/%s/manifests/%s", integrationRegistryAddress, integrationRepositoryName, tag)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	require.NoError(t, err, "Failed to create manifest request")
 	req.Header.Set("Accept", "application/vnd.oci.image.manifest.v1+json")
 
@@ -150,10 +153,11 @@ func getManifest(t *testing.T, tag string) map[string]interface{} {
 	return manifest
 }
 
+//nolint:maintidx // Function handles multiple test cases with justified complexity
 func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 	// NOTE: This integration test uses V1 records where skills have "categoryName/className" format
 	// This differs from V2/V3 which use simple skill names
-	ctx, cancel := context.WithTimeout(context.Background(), integrationTimeout)
+	ctx, cancel := context.WithTimeout(t.Context(), integrationTimeout)
 	defer cancel()
 
 	store := setupIntegrationStore(t)
@@ -164,16 +168,16 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		recordRef, err := store.Push(ctx, record)
 		require.NoError(t, err, "Failed to push record")
 		require.NotNil(t, recordRef, "Record reference should not be nil")
-		require.NotEmpty(t, recordRef.Cid, "Record CID should not be empty")
+		require.NotEmpty(t, recordRef.GetCid(), "Record CID should not be empty")
 
-		t.Logf("Pushed record with CID: %s", recordRef.Cid)
+		t.Logf("Pushed record with CID: %s", recordRef.GetCid())
 	})
 
 	t.Run("Verify Tags Generated", func(t *testing.T) {
 		// Give registry a moment to process
 		time.Sleep(1 * time.Second)
 
-		tags := getRegistryTags(t)
+		tags := getRegistryTags(ctx, t)
 		require.NotEmpty(t, tags, "Registry should contain tags after push")
 
 		t.Logf("Found %d tags in registry: %v", len(tags), tags)
@@ -223,7 +227,7 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 
 	t.Run("Verify Manifest Annotations", func(t *testing.T) {
 		// Test with name tag
-		manifest := getManifest(t, "integration-test-agent")
+		manifest := getManifest(ctx, t, "integration-test-agent")
 
 		// Check manifest structure
 		require.Contains(t, manifest, "annotations", "Manifest should contain annotations")
@@ -270,7 +274,7 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 	})
 
 	t.Run("Verify Descriptor Annotations", func(t *testing.T) {
-		manifest := getManifest(t, "integration-test-agent")
+		manifest := getManifest(ctx, t, "integration-test-agent")
 
 		// Get layers to check descriptor annotations
 		require.Contains(t, manifest, "layers", "Manifest should contain layers")
@@ -279,7 +283,8 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		require.NotEmpty(t, layers, "Should have at least one layer")
 
 		// Check first layer descriptor annotations
-		layer := layers[0].(map[string]interface{})
+		layer, ok := layers[0].(map[string]interface{})
+		require.True(t, ok, "First layer should be a map")
 		require.Contains(t, layer, "annotations", "Layer should contain annotations")
 		annotations, ok := layer["annotations"].(map[string]interface{})
 		require.True(t, ok, "Layer annotations should be a map")
@@ -313,7 +318,10 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		assert.NotEmpty(t, storedAt, "Stored-at should not be empty")
 
 		// Verify it's a valid RFC3339 timestamp
-		_, err := time.Parse(time.RFC3339, storedAt.(string))
+		storedAtStr, ok := storedAt.(string)
+		require.True(t, ok, "Stored-at should be a string")
+
+		_, err := time.Parse(time.RFC3339, storedAtStr)
 		assert.NoError(t, err, "Stored-at should be valid RFC3339 timestamp")
 	})
 
@@ -324,15 +332,15 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		require.NoError(t, err, "Failed to lookup record")
 		require.NotNil(t, meta, "Lookup should return metadata")
 
-		t.Logf("Lookup returned metadata with %d annotations", len(meta.Annotations))
+		t.Logf("Lookup returned metadata with %d annotations", len(meta.GetAnnotations()))
 
 		// Verify metadata contains expected fields
-		assert.Equal(t, "integration-test-agent", meta.Annotations["name"])
-		assert.Equal(t, "v1.0.0", meta.Annotations["version"])
+		assert.Equal(t, "integration-test-agent", meta.GetAnnotations()["name"])
+		assert.Equal(t, "v1.0.0", meta.GetAnnotations()["version"])
 		// NOTE: V1 skills use "categoryName/className" hierarchical format
-		assert.Equal(t, "nlp/processing,ml/inference", meta.Annotations["skills"])
-		assert.Equal(t, "v1", meta.SchemaVersion)
-		assert.Equal(t, "2023-01-01T00:00:00Z", meta.CreatedAt)
+		assert.Equal(t, "nlp/processing,ml/inference", meta.GetAnnotations()["skills"])
+		assert.Equal(t, "v1", meta.GetSchemaVersion())
+		assert.Equal(t, "2023-01-01T00:00:00Z", meta.GetCreatedAt())
 	})
 
 	t.Run("Pull Record", func(t *testing.T) {
@@ -346,12 +354,12 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		originalAgent := record.GetV1()
 		pulledAgent := pulledRecord.GetV1()
 
-		assert.Equal(t, originalAgent.Name, pulledAgent.Name)
-		assert.Equal(t, originalAgent.Version, pulledAgent.Version)
-		assert.Equal(t, originalAgent.Description, pulledAgent.Description)
-		assert.Equal(t, len(originalAgent.Skills), len(pulledAgent.Skills))
-		assert.Equal(t, len(originalAgent.Locators), len(pulledAgent.Locators))
-		assert.Equal(t, len(originalAgent.Extensions), len(pulledAgent.Extensions))
+		assert.Equal(t, originalAgent.GetName(), pulledAgent.GetName())
+		assert.Equal(t, originalAgent.GetVersion(), pulledAgent.GetVersion())
+		assert.Equal(t, originalAgent.GetDescription(), pulledAgent.GetDescription())
+		assert.Equal(t, len(originalAgent.GetSkills()), len(pulledAgent.GetSkills()))
+		assert.Equal(t, len(originalAgent.GetLocators()), len(pulledAgent.GetLocators()))
+		assert.Equal(t, len(originalAgent.GetExtensions()), len(pulledAgent.GetExtensions()))
 
 		t.Logf("Successfully pulled and verified record integrity")
 	})
@@ -363,7 +371,7 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		require.NoError(t, err, "Failed to lookup record for tag reconstruction")
 
 		// Reconstruct tags from metadata
-		reconstructedTags := reconstructTagsFromRecord(meta.Annotations, record.GetCid())
+		reconstructedTags := reconstructTagsFromRecord(meta.GetAnnotations(), record.GetCid())
 		require.NotEmpty(t, reconstructedTags, "Should reconstruct tags from metadata")
 
 		t.Logf("Reconstructed %d tags from metadata: %v", len(reconstructedTags), reconstructedTags)
@@ -387,9 +395,9 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		recordRef, err := store.Push(ctx, record)
 		require.NoError(t, err, "Duplicate push should not fail")
 		require.NotNil(t, recordRef, "Duplicate push should return reference")
-		assert.Equal(t, record.GetCid(), recordRef.Cid, "CID should remain the same")
+		assert.Equal(t, record.GetCid(), recordRef.GetCid(), "CID should remain the same")
 
-		t.Logf("Duplicate push handled correctly for CID: %s", recordRef.Cid)
+		t.Logf("Duplicate push handled correctly for CID: %s", recordRef.GetCid())
 	})
 }
 
@@ -422,6 +430,7 @@ func TestIntegrationTagStrategy(t *testing.T) {
 
 		// Should have CID and name-based tags only
 		var hasContentAddressable, hasNameTag, hasVersionTag bool
+
 		for _, tag := range tags {
 			switch {
 			case len(tag) > 50:

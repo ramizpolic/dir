@@ -5,7 +5,6 @@
 package localfs
 
 import (
-	"context"
 	"testing"
 
 	corev1 "github.com/agntcy/dir/api/core/v1"
@@ -16,7 +15,7 @@ import (
 )
 
 func TestStore(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create store
 	store, err := New(config.Config{Dir: t.TempDir()})
