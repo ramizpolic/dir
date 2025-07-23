@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-// LoadFromReader loads AgentRecord data from an io.Reader
+// LoadFromReader loads AgentRecord data from an io.Reader.
 func (x *AgentRecord) LoadFromReader(reader io.Reader) ([]byte, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
@@ -25,7 +25,7 @@ func (x *AgentRecord) LoadFromReader(reader io.Reader) ([]byte, error) {
 	return data, nil
 }
 
-// LoadFromFile loads AgentRecord data from a file
+// LoadFromFile loads AgentRecord data from a file.
 func (x *AgentRecord) LoadFromFile(path string) ([]byte, error) {
 	reader, err := os.Open(path)
 	if err != nil {

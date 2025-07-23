@@ -69,23 +69,24 @@ func TestRecord_GetCid(t *testing.T) {
 
 			if tt.wantErr {
 				assert.Empty(t, cid)
+
 				return
 			}
 
 			assert.NotEmpty(t, cid)
 
-			// CID should be consistent - calling it again should return the same value
+			// CID should be consistent - calling it again should return the same value.
 			cid2 := tt.record.GetCid()
 			assert.Equal(t, cid, cid2, "CID should be deterministic")
 
-			// CID should start with the CIDv1 prefix
-			assert.True(t, len(cid) > 10, "CID should be a reasonable length")
+			// CID should start with the CIDv1 prefix.
+			assert.Greater(t, len(cid), 10, "CID should be a reasonable length")
 		})
 	}
 }
 
 func TestRecord_GetCid_Consistency(t *testing.T) {
-	// Create two identical v1alpha1 records
+	// Create two identical v1alpha1 records.
 	agent := &objectsv1.Agent{
 		Name:          "test-agent",
 		SchemaVersion: "v1alpha1",
@@ -108,7 +109,7 @@ func TestRecord_GetCid_Consistency(t *testing.T) {
 		},
 	}
 
-	// Both records should have the same CID
+	// Both records should have the same CID.
 	cid1 := record1.GetCid()
 	cid2 := record2.GetCid()
 
@@ -116,7 +117,7 @@ func TestRecord_GetCid_Consistency(t *testing.T) {
 }
 
 func TestRecord_GetCid_V1Alpha2_Consistency(t *testing.T) {
-	// Create two identical v1alpha2 records
+	// Create two identical v1alpha2 records.
 	v1alpha2Record1 := &Record{
 		Data: &Record_V3{
 			V3: &objectsv3.Record{
@@ -151,7 +152,7 @@ func TestRecord_GetCid_V1Alpha2_Consistency(t *testing.T) {
 		},
 	}
 
-	// Both records should have the same CID
+	// Both records should have the same CID.
 	cid1 := v1alpha2Record1.GetCid()
 	cid2 := v1alpha2Record2.GetCid()
 
@@ -159,7 +160,7 @@ func TestRecord_GetCid_V1Alpha2_Consistency(t *testing.T) {
 }
 
 func TestRecord_GetCid_CrossVersion_Difference(t *testing.T) {
-	// Create similar but different version records - they should have different CIDs
+	// Create similar but different version records - they should have different CIDs.
 	v1alpha1Record := &Record{
 		Data: &Record_V1{
 			V1: &objectsv1.Agent{
@@ -198,13 +199,13 @@ func TestRecord_MustGetCid(t *testing.T) {
 		},
 	}
 
-	// MustGetCid should not panic for valid record
+	// MustGetCid should not panic for valid record.
 	assert.NotPanics(t, func() {
 		cid := record.MustGetCid()
 		assert.NotEmpty(t, cid)
 	})
 
-	// Test with v1alpha2 record
+	// Test with v1alpha2 record.
 	v1alpha2Record := &Record{
 		Data: &Record_V3{
 			V3: &objectsv3.Record{
@@ -221,8 +222,9 @@ func TestRecord_MustGetCid(t *testing.T) {
 		assert.NotEmpty(t, cid)
 	})
 
-	// MustGetCid should panic for nil record
+	// MustGetCid should panic for nil record.
 	var nilRecord *Record
+
 	assert.Panics(t, func() {
 		nilRecord.MustGetCid()
 	})

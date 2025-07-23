@@ -30,6 +30,6 @@ func TestRecord_LoadFromReader_InvalidJSON(t *testing.T) {
 	reader := bytes.NewReader([]byte(data))
 
 	_, err := record.LoadFromReader(reader)
-	assert.Error(t, err)
+	assert.Error(t, err) //nolint:testifylint // Test should fail
 	assert.Contains(t, err.Error(), "failed to unmarshal data")
 }

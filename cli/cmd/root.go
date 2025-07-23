@@ -7,10 +7,8 @@ import (
 	"context"
 	"fmt"
 
-	// "github.com/agntcy/dir/cli/cmd/build"  // REMOVED: Builder functionality.
 	"github.com/agntcy/dir/cli/cmd/delete"
 	"github.com/agntcy/dir/cli/cmd/info"
-	// "github.com/agntcy/dir/cli/cmd/initialize" // REMOVED: Initialize functionality.
 	"github.com/agntcy/dir/cli/cmd/list"
 	"github.com/agntcy/dir/cli/cmd/network"
 	"github.com/agntcy/dir/cli/cmd/publish"

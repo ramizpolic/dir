@@ -17,13 +17,13 @@ func (r *Record) GetCid() string {
 		return ""
 	}
 
-	// Use canonical marshaling for CID calculation
+	// Use canonical marshaling for CID calculation.
 	canonicalBytes, err := r.CanonicalMarshal()
 	if err != nil {
 		return ""
 	}
 
-	// Create CID with version 1, codec 1, SHA2-256
+	// Create CID with version 1, codec 1, SHA2-256.
 	pref := cid.Prefix{
 		Version:  1,           // CIDv1
 		Codec:    1,           // codec value as requested
@@ -46,5 +46,6 @@ func (r *Record) MustGetCid() string {
 	if cid == "" {
 		panic("failed to calculate CID")
 	}
+
 	return cid
 }

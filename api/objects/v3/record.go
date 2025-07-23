@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-// LoadFromReader loads Record data from an io.Reader
+// LoadFromReader loads Record data from an io.Reader.
 func (x *Record) LoadFromReader(reader io.Reader) ([]byte, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
@@ -25,7 +25,7 @@ func (x *Record) LoadFromReader(reader io.Reader) ([]byte, error) {
 	return data, nil
 }
 
-// LoadFromFile loads Record data from a file
+// LoadFromFile loads Record data from a file.
 func (x *Record) LoadFromFile(path string) ([]byte, error) {
 	reader, err := os.Open(path)
 	if err != nil {

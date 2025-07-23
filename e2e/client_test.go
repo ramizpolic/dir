@@ -30,7 +30,7 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 	c, err := client.New(client.WithEnvConfig())
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-	// Create agent object using new Record structure
+	// Create agent object using new Record structure.
 	agent := &objectsv1.Agent{
 		Name:    "test-agent",
 		Version: "v1",
@@ -59,16 +59,16 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 		Signature: &objectsv1.Signature{},
 	}
 
-	// Create Record with the agent
+	// Create Record with the agent.
 	record := &corev1.Record{
 		Data: &corev1.Record_V1{V1: agent},
 	}
 
-	// Marshal the agent for comparison (we'll still need this for testing)
+	// Marshal the agent for comparison (we'll still need this for testing).
 	agentData, err := json.Marshal(agent)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-	// Variable to hold the record reference (will be set by Push)
+	// Variable to hold the record reference (will be set by Push).
 	var recordRef *corev1.RecordRef
 
 	ginkgo.Context("agent push and pull", func() {
@@ -76,24 +76,24 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 			recordRef, err = c.Push(ctx, record)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			// Validate valid CID
+			// Validate valid CID.
 			gomega.Expect(recordRef.GetCid()).NotTo(gomega.BeEmpty())
 		})
 
 		ginkgo.It("should pull an agent from store", func() {
-			// Pull the agent object
+			// Pull the agent object.
 			pulledRecord, err := c.Pull(ctx, recordRef)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			// Extract the agent from the pulled record
+			// Extract the agent from the pulled record.
 			pulledAgent := pulledRecord.GetV1()
 			gomega.Expect(pulledAgent).NotTo(gomega.BeNil())
 
-			// Marshal the pulled agent for comparison
+			// Marshal the pulled agent for comparison.
 			pulledAgentData, err := json.Marshal(pulledAgent)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			// Compare pushed and pulled agent
+			// Compare pushed and pulled agent.
 			equal, err := compareJSONAgents(agentData, pulledAgentData)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(equal).To(gomega.BeTrue())
@@ -114,13 +114,13 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 			})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			// Collect items from the channel
+			// Collect items from the channel.
 			var items []*routingv1alpha2.LegacyListResponse_Item
 			for item := range itemsChan {
 				items = append(items, item)
 			}
 
-			// Validate the response
+			// Validate the response.
 			gomega.Expect(items).To(gomega.HaveLen(1))
 			for _, item := range items {
 				gomega.Expect(item).NotTo(gomega.BeNil())
@@ -136,13 +136,13 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 			})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			// Collect items from the channel
+			// Collect items from the channel.
 			var items []*routingv1alpha2.LegacyListResponse_Item
 			for item := range itemsChan {
 				items = append(items, item)
 			}
 
-			// Validate the response
+			// Validate the response.
 			gomega.Expect(items).To(gomega.HaveLen(1))
 			for _, item := range items {
 				gomega.Expect(item).NotTo(gomega.BeNil())
@@ -161,13 +161,13 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 				})
 				gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-				// Collect items from the channel
+				// Collect items from the channel.
 				var items []*routingv1alpha2.LegacyListResponse_Item
 				for item := range itemsChan {
 					items = append(items, item)
 				}
 
-				// Validate the response
+				// Validate the response.
 				gomega.Expect(items).To(gomega.HaveLen(1))
 				for _, item := range items {
 					gomega.Expect(item).NotTo(gomega.BeNil())
@@ -191,14 +191,14 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 			})
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			// Collect items from the channel
+			// Collect items from the channel.
 			var items []*routingv1alpha2.LegacyListResponse_Item
 			for item := range itemsChan {
 				items = append(items, item)
 			}
 
-			// Validate the response
-			gomega.Expect(items).To(gomega.HaveLen(0))
+			// Validate the response.
+			gomega.Expect(items).To(gomega.BeEmpty())
 		})
 	})
 
