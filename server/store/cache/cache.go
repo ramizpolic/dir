@@ -46,7 +46,6 @@ func (s *cachedStore) Push(ctx context.Context, record *corev1.Record) (*corev1.
 	// Cache the record after successful push
 	if err := s.cacheRecord(ctx, record); err != nil {
 		logger.Debug("Failed to cache record", "cid", ref.GetCid(), "error", err)
-		// Don't fail the push operation if caching fails
 	}
 
 	return ref, nil
@@ -75,7 +74,6 @@ func (s *cachedStore) Pull(ctx context.Context, ref *corev1.RecordRef) (*corev1.
 	// Cache the record for future requests
 	if err := s.cacheRecord(ctx, record); err != nil {
 		logger.Debug("Failed to cache record", "cid", cid, "error", err)
-		// Don't fail the pull operation if caching fails
 	}
 
 	return record, nil
@@ -104,7 +102,6 @@ func (s *cachedStore) Lookup(ctx context.Context, ref *corev1.RecordRef) (*corev
 	// Cache the metadata for future requests
 	if err := s.cacheMeta(ctx, meta); err != nil {
 		logger.Debug("Failed to cache metadata", "cid", cid, "error", err)
-		// Don't fail the lookup operation if caching fails
 	}
 
 	return meta, nil
