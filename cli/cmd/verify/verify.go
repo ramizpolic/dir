@@ -76,11 +76,11 @@ func runCommand(cmd *cobra.Command, source io.ReadCloser) error {
 	case *corev1.Record_V1:
 		agent = data.V1
 	case *corev1.Record_V2:
-		return fmt.Errorf("verification of OASF v2 records is not yet supported")
+		return errors.New("verification of OASF v2 records is not yet supported")
 	case *corev1.Record_V3:
-		return fmt.Errorf("verification of OASF v3 records is not yet supported")
+		return errors.New("verification of OASF v3 records is not yet supported")
 	default:
-		return fmt.Errorf("unsupported record type for verification")
+		return errors.New("unsupported record type for verification")
 	}
 
 	//nolint:nestif

@@ -156,12 +156,14 @@ func (c *Client) PushBatch(ctx context.Context, records []*corev1.Record) ([]*co
 	}
 
 	// Receive all responses
-	var refs []*corev1.RecordRef
-	for i := 0; i < len(records); i++ {
+	var refs []*corev1.RecordRef //nolint:prealloc // We don't know the number of records in advance
+
+	for i := range records {
 		recordRef, err := stream.Recv()
 		if err != nil {
 			return nil, fmt.Errorf("failed to receive record ref %d: %w", i, err)
 		}
+
 		refs = append(refs, recordRef)
 	}
 
@@ -193,12 +195,14 @@ func (c *Client) PullBatch(ctx context.Context, recordRefs []*corev1.RecordRef) 
 	}
 
 	// Receive all records
-	var records []*corev1.Record
-	for i := 0; i < len(recordRefs); i++ {
+	var records []*corev1.Record //nolint:prealloc // We don't know the number of records in advance
+
+	for i := range recordRefs {
 		record, err := stream.Recv()
 		if err != nil {
 			return nil, fmt.Errorf("failed to receive record %d: %w", i, err)
 		}
+
 		records = append(records, record)
 	}
 

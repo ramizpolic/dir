@@ -44,7 +44,7 @@ Usage examples:
 		// get source
 		source, err := agentUtils.GetReader(path, opts.FromStdin)
 		if err != nil {
-			return err
+			return err //nolint:wrapcheck // Error is already wrapped
 		}
 
 		return runCommand(cmd, source)

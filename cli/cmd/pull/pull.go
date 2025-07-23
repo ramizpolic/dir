@@ -53,6 +53,7 @@ func runCommand(cmd *cobra.Command, digest string) error {
 
 	// Extract the OASF object from the Record based on version
 	var oasfData interface{}
+
 	var rawData []byte
 
 	switch data := record.GetData().(type) {
@@ -66,7 +67,7 @@ func runCommand(cmd *cobra.Command, digest string) error {
 		oasfData = data.V3
 		rawData, err = json.Marshal(data.V3)
 	default:
-		return fmt.Errorf("unsupported record type")
+		return errors.New("unsupported record type")
 	}
 
 	if err != nil {
@@ -76,6 +77,7 @@ func runCommand(cmd *cobra.Command, digest string) error {
 	// If raw format flag is set, print and exit
 	if opts.FormatRaw {
 		presenter.Print(cmd, string(rawData))
+
 		return nil
 	}
 

@@ -14,6 +14,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	UnknownCID = "unknown"
+)
+
 func listDigest(cmd *cobra.Command, client *client.Client, digest string) error {
 	items, err := client.List(cmd.Context(), &routingtypes.ListRequest{
 		LegacyListRequest: &routingtypes.LegacyListRequest{
@@ -32,7 +36,7 @@ func listDigest(cmd *cobra.Command, client *client.Client, digest string) error 
 		if ref := item.GetRef(); ref != nil {
 			cid = ref.GetCid()
 		} else {
-			cid = "unknown"
+			cid = UnknownCID
 		}
 
 		presenter.Printf(cmd,

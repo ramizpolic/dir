@@ -122,6 +122,7 @@ func TestLoadOASFFromReader(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, record)
 
+				//nolint:gocritic // if-else chain is clearer than switch for boolean flag testing in tests
 				if tt.expectV1 {
 					assert.NotNil(t, record.GetV1())
 					assert.Nil(t, record.GetV2())
