@@ -8,6 +8,7 @@ import (
 	_ "embed"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	clicmd "github.com/agntcy/dir/cli/cmd"
@@ -58,7 +59,7 @@ var _ = ginkgo.Describe("Running dirctl end-to-end tests using a local single no
 			err := pushCmd.Execute()
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			tempAgentCID = outputBuffer.String()
+			tempAgentCID = strings.TrimSpace(outputBuffer.String())
 
 			// CID is not empty
 			gomega.Expect(tempAgentCID).NotTo(gomega.BeEmpty())
@@ -136,40 +137,41 @@ var _ = ginkgo.Describe("Running dirctl end-to-end tests using a local single no
 			gomega.Expect(err).To(gomega.HaveOccurred())
 		})
 	})
-	/*
-		ginkgo.Context("agent search", func() {
-			ginkgo.It("should search for records with every filter and return their CID", func() {
-				var outputBuffer bytes.Buffer
 
-				searchCmd := clicmd.RootCmd
-				searchCmd.SetOut(&outputBuffer)
-				searchCmd.SetArgs([]string{
-					"search",
-					// "--limit",
-					// "10",
-					// "--offset",
-					// "0",
-					"--query",
-					"name=directory.agntcy.org/cisco/marketing-strategy",
-					// "--query",
-					// "version=v1.0.0",
-					// "--query",
-					// "skill-id=10201",
-					// "--query",
-					// "skill-name=Natural Language Processing/Text Completion",
-					// "--query",
-					// "locator=docker-image:https://ghcr.io/agntcy/marketing-strategy",
-					// "--query",
-					// "extension=schema.oasf.agntcy.org/features/runtime/framework:v0.0.0",
-				})
+	ginkgo.Context("agent search", func() {
+		ginkgo.It("should search for records with every filter and return their CID", func() {
+			var outputBuffer bytes.Buffer
 
-				err := searchCmd.Execute()
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-				// Check if the output contains the expected CID
-				gomega.Expect(outputBuffer.String()).To(gomega.Equal(tempAgentCID))
+			searchCmd := clicmd.RootCmd
+			searchCmd.SetOut(&outputBuffer)
+			searchCmd.SetArgs([]string{
+				"search",
+				"--limit",
+				"10",
+				"--offset",
+				"0",
+				"--query",
+				"name=directory.agntcy.org/cisco/marketing-strategy",
+				"--query",
+				"version=v1.0.0",
+				"--query",
+				"skill-id=10201",
+				"--query",
+				"skill-name=Natural Language Processing/Text Completion",
+				"--query",
+				"locator=docker-image:https://ghcr.io/agntcy/marketing-strategy",
+				"--query",
+				"extension=schema.oasf.agntcy.org/features/runtime/framework:v0.0.0",
 			})
-		})*/
+
+			err := searchCmd.Execute()
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+
+			// Check if the output contains the expected CID (trim newline from search output)
+			searchOutput := strings.TrimSpace(outputBuffer.String())
+			gomega.Expect(searchOutput).To(gomega.Equal(tempAgentCID))
+		})
+	})
 
 	ginkgo.Context("agent delete", func() {
 		ginkgo.It("should successfully delete an agent", func() {

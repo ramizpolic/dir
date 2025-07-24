@@ -11,6 +11,7 @@ import (
 	corev1 "github.com/agntcy/dir/api/core/v1"
 	storetypes "github.com/agntcy/dir/api/store/v1alpha2"
 	"github.com/agntcy/dir/server/types"
+	"github.com/agntcy/dir/server/types/adapters"
 	"github.com/agntcy/dir/utils/logging"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -104,6 +105,16 @@ func (s storeCtrl) Push(stream storetypes.StoreService_PushServer) error {
 		}
 
 		storeLogger.Info("Record pushed to store successfully", "cid", pushedRef.GetCid())
+
+		// Add record to search index for discoverability
+		// Use the adapter pattern to convert corev1.Record to types.Record
+		recordAdapter := adapters.NewRecordAdapter(record)
+		if err := s.search.AddRecord(recordAdapter); err != nil {
+			// Log error but don't fail the push operation
+			storeLogger.Error("Failed to add record to search index", "error", err, "cid", recordCID)
+		} else {
+			storeLogger.Debug("Record added to search index successfully", "cid", recordCID)
+		}
 
 		// Send the RecordRef back via stream
 		if err := stream.Send(pushedRef); err != nil {
