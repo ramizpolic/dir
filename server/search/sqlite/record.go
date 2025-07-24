@@ -22,7 +22,7 @@ type Record struct {
 	Extensions []Extension `gorm:"foreignKey:AgentID;constraint:OnDelete:CASCADE"`
 }
 
-// Implement central Record interface
+// Implement central Record interface.
 func (r *Record) GetCid() string {
 	return r.CID
 }
@@ -31,7 +31,7 @@ func (r *Record) GetRecordData() types.RecordData {
 	return &RecordDataAdapter{record: r}
 }
 
-// RecordDataAdapter adapts SQLite Record to central RecordData interface
+// RecordDataAdapter adapts SQLite Record to central RecordData interface.
 type RecordDataAdapter struct {
 	record *Record
 }
@@ -73,6 +73,7 @@ func (r *RecordDataAdapter) GetSkills() []types.Skill {
 	for i, skill := range r.record.Skills {
 		skills[i] = &skill
 	}
+
 	return skills
 }
 
@@ -81,6 +82,7 @@ func (r *RecordDataAdapter) GetLocators() []types.Locator {
 	for i, locator := range r.record.Locators {
 		locators[i] = &locator
 	}
+
 	return locators
 }
 
@@ -89,6 +91,7 @@ func (r *RecordDataAdapter) GetExtensions() []types.Extension {
 	for i, extension := range r.record.Extensions {
 		extensions[i] = &extension
 	}
+
 	return extensions
 }
 

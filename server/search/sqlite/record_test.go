@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// TestRecord implements types.Record interface for testing
+// TestRecord implements types.Record interface for testing.
 type TestRecord struct {
 	cid  string
 	data *TestRecordData
@@ -27,7 +27,7 @@ func (r *TestRecord) GetRecordData() types.RecordData {
 	return r.data
 }
 
-// TestRecordData implements types.RecordData interface for testing
+// TestRecordData implements types.RecordData interface for testing.
 type TestRecordData struct {
 	name       string
 	version    string
@@ -84,7 +84,7 @@ func (r *TestRecordData) GetPreviousRecordCid() string {
 	return ""
 }
 
-// Test implementations of Skill, Locator, Extension
+// Test implementations of Skill, Locator, Extension.
 type TestSkill struct {
 	id   uint64
 	name string
