@@ -10,10 +10,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-// CanonicalMarshal marshals the record using canonical JSON serialization.
+// MarshalCanonical marshals the record using canonical JSON serialization.
 // This ensures deterministic, cross-language compatible byte representation.
 // The output is used for both CID calculation and storage to maintain consistency.
-func (r *Record) CanonicalMarshal() ([]byte, error) {
+func (r *Record) MarshalCanonical() ([]byte, error) {
 	if r == nil {
 		return nil, nil
 	}
@@ -48,8 +48,8 @@ func (r *Record) CanonicalMarshal() ([]byte, error) {
 	return canonicalBytes, nil
 }
 
-// CanonicalUnmarshal unmarshals canonical JSON bytes back to a Record.
-func CanonicalUnmarshal(data []byte) (*Record, error) {
+// UnmarshalCanonical unmarshals canonical JSON bytes back to a Record.
+func UnmarshalCanonical(data []byte) (*Record, error) {
 	var record Record
 
 	err := protojson.UnmarshalOptions{

@@ -18,7 +18,7 @@ func (r *Record) GetCid() string {
 	}
 
 	// Use canonical marshaling for CID calculation.
-	canonicalBytes, err := r.CanonicalMarshal()
+	canonicalBytes, err := r.MarshalCanonical()
 	if err != nil {
 		return ""
 	}

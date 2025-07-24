@@ -96,7 +96,12 @@ func (x *Agent) LoadFromFile(path string) ([]byte, error) {
 	}
 	defer reader.Close()
 
-	return x.LoadFromReader(reader)
+	data, err := x.LoadFromReader(reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load from reader: %w", err)
+	}
+
+	return data, nil
 }
 
 func removeDuplicates[T comparable](slice []T) []T {
