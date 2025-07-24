@@ -39,7 +39,7 @@ func TestStorePushLookupPullDelete(t *testing.T) {
 	// Create test record
 	agent := &objectsv1.Agent{
 		Name:          "test-agent",
-		SchemaVersion: "v1",
+		SchemaVersion: "v0.3.1",
 		Description:   "A test agent",
 	}
 
@@ -86,6 +86,11 @@ func TestStorePushLookupPullDelete(t *testing.T) {
 	_, err = store.Lookup(testCtx, recordRef)
 	assert.Error(t, err, "lookup should fail after delete")
 	assert.ErrorContains(t, err, "not found")
+
+	// Pull should also fail after delete
+	_, err = store.Pull(testCtx, recordRef)
+	assert.Error(t, err, "pull should fail after delete")
+	assert.ErrorContains(t, err, "not found")
 }
 
 func BenchmarkLocalStore(b *testing.B) {
@@ -114,7 +119,7 @@ func benchmarkStep(store types.StoreAPI) {
 	// Create test record
 	agent := &objectsv1.Agent{
 		Name:          "bench-agent",
-		SchemaVersion: "v1",
+		SchemaVersion: "v0.3.1",
 		Description:   "A benchmark agent",
 	}
 

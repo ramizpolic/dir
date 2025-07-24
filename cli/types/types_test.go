@@ -20,27 +20,27 @@ func TestDetectOASFVersion(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "v1 with schema_version",
-			jsonData:    `{"schema_version": "v1", "name": "test-agent"}`,
-			expectedVer: "v1",
+			name:        "v0.3.1 with schema_version",
+			jsonData:    `{"schema_version": "v0.3.1", "name": "test-agent"}`,
+			expectedVer: "v0.3.1",
 			expectError: false,
 		},
 		{
-			name:        "v2 with schema_version",
-			jsonData:    `{"schema_version": "v2", "name": "test-agent"}`,
-			expectedVer: "v2",
+			name:        "v0.4.0 with schema_version",
+			jsonData:    `{"schema_version": "v0.4.0", "name": "test-agent"}`,
+			expectedVer: "v0.4.0",
 			expectError: false,
 		},
 		{
-			name:        "v3 with schema_version",
-			jsonData:    `{"schema_version": "v3", "name": "test-record"}`,
-			expectedVer: "v3",
+			name:        "v0.5.0 with schema_version",
+			jsonData:    `{"schema_version": "v0.5.0", "name": "test-record"}`,
+			expectedVer: "v0.5.0",
 			expectError: false,
 		},
 		{
-			name:        "no schema_version defaults to v1",
+			name:        "no schema_version defaults to v0.3.1",
 			jsonData:    `{"name": "test-agent", "version": "1.0"}`,
-			expectedVer: "v1",
+			expectedVer: "v0.3.1",
 			expectError: false,
 		},
 		{
@@ -75,32 +75,32 @@ func TestLoadOASFFromReader(t *testing.T) {
 		expectV3    bool
 	}{
 		{
-			name:        "valid v1 agent",
-			jsonData:    `{"schema_version": "v1", "name": "test-agent", "version": "1.0"}`,
+			name:        "valid v0.3.1 agent",
+			jsonData:    `{"schema_version": "v0.3.1", "name": "test-agent", "version": "1.0"}`,
 			expectError: false,
 			expectV1:    true,
 		},
 		{
-			name:        "valid v2 agent record",
-			jsonData:    `{"schema_version": "v2", "name": "test-agent", "version": "1.0"}`,
+			name:        "valid v0.4.0 agent record",
+			jsonData:    `{"schema_version": "v0.4.0", "name": "test-agent", "version": "1.0"}`,
 			expectError: false,
 			expectV2:    true,
 		},
 		{
-			name:        "valid v3 record",
-			jsonData:    `{"schema_version": "v3", "name": "test-record", "version": "1.0"}`,
+			name:        "valid v0.5.0 record",
+			jsonData:    `{"schema_version": "v0.5.0", "name": "test-record", "version": "1.0"}`,
 			expectError: false,
 			expectV3:    true,
 		},
 		{
-			name:        "no schema_version defaults to v1",
+			name:        "no schema_version defaults to v0.3.1",
 			jsonData:    `{"name": "test-agent", "version": "1.0"}`,
 			expectError: false,
 			expectV1:    true,
 		},
 		{
 			name:        "unsupported version",
-			jsonData:    `{"schema_version": "v4", "name": "test-record"}`,
+			jsonData:    `{"schema_version": "v0.6.0", "name": "test-record"}`,
 			expectError: true,
 		},
 		{

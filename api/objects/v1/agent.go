@@ -94,6 +94,7 @@ func (x *Agent) LoadFromFile(path string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
+	defer reader.Close()
 
 	return x.LoadFromReader(reader)
 }

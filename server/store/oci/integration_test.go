@@ -44,7 +44,7 @@ func createTestRecord() *corev1.Record {
 				Name:          "integration-test-agent",
 				Version:       "v1.0.0",
 				Description:   "Integration test agent for OCI storage",
-				SchemaVersion: "v1",
+				SchemaVersion: "v0.3.1",
 				CreatedAt:     "2023-01-01T00:00:00Z",
 				Authors:       []string{"integration-test@example.com"},
 				Skills: []*objectsv1.Skill{
@@ -242,8 +242,8 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 			"org.agntcy.dir/name":           "integration-test-agent",
 			"org.agntcy.dir/version":        "v1.0.0",
 			"org.agntcy.dir/description":    "Integration test agent for OCI storage",
-			"org.agntcy.dir/oasf-version":   "v1",
-			"org.agntcy.dir/schema-version": "v1",
+			"org.agntcy.dir/oasf-version":   "v0.3.1",
+			"org.agntcy.dir/schema-version": "v0.3.1",
 			"org.agntcy.dir/created-at":     "2023-01-01T00:00:00Z",
 			"org.agntcy.dir/authors":        "integration-test@example.com",
 			// NOTE: V1 skills use "categoryName/className" hierarchical format
@@ -295,7 +295,7 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		expectedDescriptorAnnotations := map[string]string{
 			"org.agntcy.dir/encoding":      "json",
 			"org.agntcy.dir/blob-type":     "oasf-record",
-			"org.agntcy.dir/schema":        "oasf.v1.Agent",
+			"org.agntcy.dir/schema":        "oasf.v0.3.1.Agent",
 			"org.agntcy.dir/compression":   "none",
 			"org.agntcy.dir/signed":        "false",
 			"org.agntcy.dir/store-version": "v1",
@@ -339,7 +339,7 @@ func TestIntegrationOCIStoreWorkflow(t *testing.T) {
 		assert.Equal(t, "v1.0.0", meta.GetAnnotations()["version"])
 		// NOTE: V1 skills use "categoryName/className" hierarchical format
 		assert.Equal(t, "nlp/processing,ml/inference", meta.GetAnnotations()["skills"])
-		assert.Equal(t, "v1", meta.GetSchemaVersion())
+		assert.Equal(t, "v0.3.1", meta.GetSchemaVersion())
 		assert.Equal(t, "2023-01-01T00:00:00Z", meta.GetCreatedAt())
 	})
 

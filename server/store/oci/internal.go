@@ -143,19 +143,20 @@ func (s *store) deleteFromOCIStore(ctx context.Context, ref *corev1.RecordRef) e
 		return status.Errorf(codes.Internal, "expected *oci.Store, got %T", s.repo)
 	}
 
-	// ENHANCED: Clean up all discovery tags first
+	// Phase 1: Remove tag references to manifests
 	s.cleanupAllTags(ctx, cid)
 
-	// Resolve and delete the manifest. Errors are logged but not returned
-	// for the same reason as above.
+	// Phase 2: Remove manifest references to blobs
 	manifestDesc, err := s.repo.Resolve(ctx, cid)
 	if err != nil {
-		internalLogger.Debug("Failed to resolve manifest", "cid", cid, "error", err)
+		// Manifest might already be gone - this is not necessarily an error
+		// Continue to blob deletion to ensure cleanup
+		internalLogger.Debug("Failed to resolve manifest during delete", "cid", cid, "error", err)
 	} else if err := store.Delete(ctx, manifestDesc); err != nil {
-		internalLogger.Debug("Failed to delete manifest", "cid", cid, "error", err)
+		return status.Errorf(codes.Internal, "failed to delete manifest: %v", err)
 	}
 
-	// Delete the blob associated with the descriptor.
+	// Phase 3: Remove blob data (now unreferenced)
 	ociDigest, err := getDigestFromCID(cid)
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to get digest from CID: %v", err)
@@ -182,19 +183,18 @@ func (s *store) deleteFromRemoteRepository(ctx context.Context, ref *corev1.Reco
 		return status.Errorf(codes.Internal, "expected *remote.Repository, got %T", s.repo)
 	}
 
-	// ENHANCED: Clean up all discovery tags first
+	// Phase 1: Remove tag references to manifests
 	s.cleanupAllTags(ctx, cid)
 
-	// Resolve and delete the manifest. Errors are logged but not returned because
-	// the record may exist without being tagged with a manifest.
+	// Phase 2: Remove manifest references to blobs
 	manifestDesc, err := s.repo.Resolve(ctx, cid)
 	if err != nil {
-		internalLogger.Debug("Failed to resolve manifest", "cid", cid, "error", err)
+		internalLogger.Debug("Failed to resolve manifest during delete", "cid", cid, "error", err)
 	} else if err := repo.Manifests().Delete(ctx, manifestDesc); err != nil {
-		internalLogger.Debug("Failed to delete manifest", "cid", cid, "error", err)
+		return status.Errorf(codes.Internal, "failed to delete manifest: %v", err)
 	}
 
-	// Delete the blob associated with the descriptor.
+	// Phase 3: Remove blob data (now unreferenced)
 	ociDigest, err := getDigestFromCID(cid)
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to get digest from CID: %v", err)

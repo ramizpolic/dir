@@ -47,7 +47,7 @@ func TestStore(t *testing.T) {
 	fetchedMeta, err := store.Lookup(ctx, pushedRef)
 	require.NoError(t, err, "lookup failed")
 	assert.Equal(t, recordCID, fetchedMeta.GetCid(), "fetched CID should match")
-	assert.Equal(t, "v1", fetchedMeta.GetSchemaVersion(), "schema version should be v1")
+	assert.Equal(t, "v0.3.1", fetchedMeta.GetSchemaVersion(), "schema version should be v0.3.1")
 	// TODO: where the annotations are?
 	// assert.NotNil(t, fetchedMeta.GetAnnotations(), "annotations should not be nil")
 

@@ -6,6 +6,7 @@ package e2e
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	corev1 "github.com/agntcy/dir/api/core/v1"
 	objectsv1 "github.com/agntcy/dir/api/objects/v1"
@@ -151,7 +152,7 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 		})
 
 		ginkgo.It("should list published agent by feature and domain labels", func() {
-			labels := []string{"/extensions/schema.oasf.agntcy.org/domains/domain-1", "/extensions/schema.oasf.agntcy.org/features/feature-1"}
+			labels := []string{"/domains/domain-1", "/features/feature-1"}
 
 			for _, label := range labels {
 				itemsChan, err := c.List(ctx, &routingv1alpha2.ListRequest{
@@ -209,6 +210,9 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 		})
 
 		ginkgo.It("should not find deleted agent in store", func() {
+			// Add a small delay to ensure delete operation is fully processed
+			time.Sleep(100 * time.Millisecond)
+
 			pulledRecord, err := c.Pull(ctx, recordRef)
 			gomega.Expect(err).To(gomega.HaveOccurred())
 			gomega.Expect(pulledRecord).To(gomega.BeNil())

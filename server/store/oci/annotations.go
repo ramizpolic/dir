@@ -33,11 +33,11 @@ func extractManifestAnnotations(record *corev1.Record) map[string]string {
 	// Determine OASF version
 	switch record.GetData().(type) {
 	case *corev1.Record_V1:
-		annotations[ManifestKeyOASFVersion] = "v1"
+		annotations[ManifestKeyOASFVersion] = "v0.3.1"
 	case *corev1.Record_V2:
-		annotations[ManifestKeyOASFVersion] = "v2"
+		annotations[ManifestKeyOASFVersion] = "v0.4.0"
 	case *corev1.Record_V3:
-		annotations[ManifestKeyOASFVersion] = "v3"
+		annotations[ManifestKeyOASFVersion] = "v0.5.0"
 	}
 
 	// Core identity fields (version-agnostic via adapter)
@@ -137,11 +137,11 @@ func createDescriptorAnnotations(record *corev1.Record) map[string]string {
 	// Schema information based on record version
 	switch record.GetData().(type) {
 	case *corev1.Record_V1:
-		annotations[DescriptorKeySchema] = "oasf.v1.Agent"
+		annotations[DescriptorKeySchema] = "oasf.v0.3.1.Agent"
 	case *corev1.Record_V2:
-		annotations[DescriptorKeySchema] = "oasf.v2.AgentRecord"
+		annotations[DescriptorKeySchema] = "oasf.v0.4.0.AgentRecord"
 	case *corev1.Record_V3:
-		annotations[DescriptorKeySchema] = "oasf.v3.Record"
+		annotations[DescriptorKeySchema] = "oasf.v0.5.0.Record"
 	default:
 		annotations[DescriptorKeySchema] = "unknown"
 	}
@@ -185,7 +185,7 @@ func parseManifestAnnotations(annotations map[string]string) *corev1.RecordMeta 
 	}
 
 	// Set fallback schema version first
-	recordMeta.SchemaVersion = "v1" // fallback default
+	recordMeta.SchemaVersion = "v0.3.1" // fallback default
 
 	if annotations == nil {
 		return recordMeta

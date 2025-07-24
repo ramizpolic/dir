@@ -13,7 +13,7 @@ import (
 
 func TestRecord_LoadFromReader(t *testing.T) {
 	record := &Record{}
-	data := `{"name": "TestRecord", "version": "1.0", "schema_version": "v3"}`
+	data := `{"name": "TestRecord", "version": "1.0", "schema_version": "v0.5.0"}`
 	reader := bytes.NewReader([]byte(data))
 
 	_, err := record.LoadFromReader(reader)
@@ -21,7 +21,7 @@ func TestRecord_LoadFromReader(t *testing.T) {
 
 	assert.Equal(t, "TestRecord", record.GetName())
 	assert.Equal(t, "1.0", record.GetVersion())
-	assert.Equal(t, "v3", record.GetSchemaVersion())
+	assert.Equal(t, "v0.5.0", record.GetSchemaVersion())
 }
 
 func TestRecord_LoadFromReader_InvalidJSON(t *testing.T) {

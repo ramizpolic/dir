@@ -90,7 +90,7 @@ func TestExtractManifestAnnotations(t *testing.T) {
 						Name:          "test-agent",
 						Version:       "1.0.0",
 						Description:   "Test agent description",
-						SchemaVersion: "v1",
+						SchemaVersion: "v0.3.1",
 						CreatedAt:     "2023-01-01T00:00:00Z",
 						Authors:       []string{"author1", "author2"},
 					},
@@ -98,11 +98,11 @@ func TestExtractManifestAnnotations(t *testing.T) {
 			},
 			contains: map[string]string{
 				manifestDirObjectTypeKey: "record",
-				ManifestKeyOASFVersion:   "v1",
+				ManifestKeyOASFVersion:   "v0.3.1",
 				ManifestKeyName:          "test-agent",
 				ManifestKeyVersion:       "1.0.0",
 				ManifestKeyDescription:   "Test agent description",
-				ManifestKeySchemaVersion: "v1",
+				ManifestKeySchemaVersion: "v0.3.1",
 				ManifestKeyCreatedAt:     "2023-01-01T00:00:00Z",
 				ManifestKeyAuthors:       "author1,author2",
 				ManifestKeySigned:        "false",
@@ -161,7 +161,7 @@ func TestExtractManifestAnnotations(t *testing.T) {
 				},
 			},
 			contains: map[string]string{
-				ManifestKeyOASFVersion: "v3",
+				ManifestKeyOASFVersion: "v0.5.0",
 				ManifestKeyName:        "test-record-v2",
 				ManifestKeyVersion:     "2.0.0",
 				ManifestKeyDescription: "Test record v2 description",
@@ -229,7 +229,7 @@ func TestCreateDescriptorAnnotations(t *testing.T) {
 				DescriptorKeyBlobType:    "oasf-record",
 				DescriptorKeyEncoding:    "json",
 				DescriptorKeyCompression: "none",
-				DescriptorKeySchema:      "oasf.v1.Agent",
+				DescriptorKeySchema:      "oasf.v0.3.1.Agent",
 				// DescriptorKeyContentCid is verified separately using record.GetCid()
 				DescriptorKeySigned:       "false",
 				DescriptorKeyStoreVersion: "v1",
@@ -247,7 +247,7 @@ func TestCreateDescriptorAnnotations(t *testing.T) {
 			contains: map[string]string{
 				DescriptorKeyBlobType: "oasf-record",
 				DescriptorKeyEncoding: "json",
-				DescriptorKeySchema:   "oasf.v3.Record",
+				DescriptorKeySchema:   "oasf.v0.5.0.Record",
 				DescriptorKeySigned:   "false",
 			},
 		},
@@ -311,7 +311,7 @@ func TestParseManifestAnnotations(t *testing.T) {
 			name:        "Nil annotations",
 			annotations: nil,
 			expected: &corev1.RecordMeta{
-				SchemaVersion: "v1", // fallback
+				SchemaVersion: "v0.3.1", // fallback
 				Annotations:   make(map[string]string),
 			},
 		},
@@ -319,7 +319,7 @@ func TestParseManifestAnnotations(t *testing.T) {
 			name:        "Empty annotations",
 			annotations: map[string]string{},
 			expected: &corev1.RecordMeta{
-				SchemaVersion: "v1", // fallback
+				SchemaVersion: "v0.3.1", // fallback
 				Annotations:   make(map[string]string),
 			},
 		},
@@ -352,7 +352,7 @@ func TestParseManifestAnnotations(t *testing.T) {
 				ManifestKeyAuthors: "author1,author2",
 			},
 			expected: &corev1.RecordMeta{
-				SchemaVersion: "v1", // fallback
+				SchemaVersion: "v0.3.1", // fallback
 				Annotations: map[string]string{
 					MetadataKeyName:         "skill-agent",
 					MetadataKeySkills:       "nlp,ml,vision",
@@ -371,7 +371,7 @@ func TestParseManifestAnnotations(t *testing.T) {
 				ManifestKeySignedAt:      "2023-01-01T12:00:00Z",
 			},
 			expected: &corev1.RecordMeta{
-				SchemaVersion: "v1", // fallback
+				SchemaVersion: "v0.3.1", // fallback
 				Annotations: map[string]string{
 					MetadataKeyName:          "secure-agent",
 					MetadataKeySigned:        "true",
@@ -388,7 +388,7 @@ func TestParseManifestAnnotations(t *testing.T) {
 				ManifestKeyCustomPrefix + "custom2": "value2",
 			},
 			expected: &corev1.RecordMeta{
-				SchemaVersion: "v1", // fallback
+				SchemaVersion: "v0.3.1", // fallback
 				Annotations: map[string]string{
 					MetadataKeyName: "custom-agent",
 					"custom1":       "value1",
@@ -406,7 +406,7 @@ func TestParseManifestAnnotations(t *testing.T) {
 				ManifestKeyPreviousCid:    "QmPrevious123",
 			},
 			expected: &corev1.RecordMeta{
-				SchemaVersion: "v1", // fallback
+				SchemaVersion: "v0.3.1", // fallback
 				Annotations: map[string]string{
 					MetadataKeyName:              "full-agent",
 					MetadataKeySkills:            "nlp,ml",
@@ -461,7 +461,7 @@ func TestExtractManifestAnnotations_EdgeCases(t *testing.T) {
 
 		// Should still have basic annotations
 		assert.Equal(t, "record", result[manifestDirObjectTypeKey])
-		assert.Equal(t, "v1", result[ManifestKeyOASFVersion])
+		assert.Equal(t, "v0.3.1", result[ManifestKeyOASFVersion])
 		assert.Equal(t, "false", result[ManifestKeySigned])
 	})
 
@@ -485,7 +485,7 @@ func TestRoundTripConversion(t *testing.T) {
 				Name:          "roundtrip-agent",
 				Version:       "1.0.0",
 				Description:   "Test roundtrip conversion",
-				SchemaVersion: "v1",
+				SchemaVersion: "v0.3.1",
 				CreatedAt:     "2023-01-01T00:00:00Z",
 				Authors:       []string{"author1", "author2"},
 				Skills: []*objectsv1.Skill{
@@ -505,12 +505,12 @@ func TestRoundTripConversion(t *testing.T) {
 	recordMeta := parseManifestAnnotations(manifestAnnotations)
 
 	// Verify round-trip conversion
-	assert.Equal(t, "v1", recordMeta.GetSchemaVersion())
+	assert.Equal(t, "v0.3.1", recordMeta.GetSchemaVersion())
 	assert.Equal(t, "2023-01-01T00:00:00Z", recordMeta.GetCreatedAt())
 	assert.Equal(t, "roundtrip-agent", recordMeta.GetAnnotations()[MetadataKeyName])
 	assert.Equal(t, "1.0.0", recordMeta.GetAnnotations()[MetadataKeyVersion])
 	assert.Equal(t, "Test roundtrip conversion", recordMeta.GetAnnotations()[MetadataKeyDescription])
-	assert.Equal(t, "v1", recordMeta.GetAnnotations()[MetadataKeyOASFVersion])
+	assert.Equal(t, "v0.3.1", recordMeta.GetAnnotations()[MetadataKeyOASFVersion])
 	assert.Equal(t, "author1,author2", recordMeta.GetAnnotations()[MetadataKeyAuthors])
 	assert.Equal(t, "2", recordMeta.GetAnnotations()[MetadataKeyAuthorsCount])
 	// NOTE: V1 skills return "categoryName/className" format, not just className

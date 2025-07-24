@@ -76,9 +76,9 @@ func runCommand(cmd *cobra.Command, source io.ReadCloser) error {
 	case *corev1.Record_V1:
 		agent = data.V1
 	case *corev1.Record_V2:
-		return errors.New("verification of OASF v2 records is not yet supported")
+		return errors.New("verification of OASF v0.4.0 records is not yet supported")
 	case *corev1.Record_V3:
-		return errors.New("verification of OASF v3 records is not yet supported")
+		return errors.New("verification of OASF v0.5.0 records is not yet supported")
 	default:
 		return errors.New("unsupported record type for verification")
 	}

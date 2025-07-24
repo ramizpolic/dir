@@ -95,7 +95,7 @@ func (c *store) Push(_ context.Context, record *corev1.Record) (*corev1.RecordRe
 	recordMeta := &corev1.RecordMeta{
 		Cid:           recordCID,
 		Annotations:   make(map[string]string), // TODO: extract from record if needed
-		SchemaVersion: "v1",                    // TODO: determine from record type
+		SchemaVersion: "v0.3.1",                // TODO: determine from record type
 		CreatedAt:     "",                      // TODO: set current timestamp
 	}
 

@@ -198,7 +198,7 @@ func TestCachedStore_Lookup_CacheHit(t *testing.T) {
 	meta := &corev1.RecordMeta{
 		Cid:           recordCID,
 		Annotations:   map[string]string{"test": "value"},
-		SchemaVersion: "v1",
+		SchemaVersion: "v0.3.1",
 		CreatedAt:     "2023-01-01T00:00:00Z",
 	}
 
@@ -231,7 +231,7 @@ func TestCachedStore_Lookup_CacheMiss(t *testing.T) {
 	meta := &corev1.RecordMeta{
 		Cid:           recordCID,
 		Annotations:   map[string]string{"test": "value"},
-		SchemaVersion: "v1",
+		SchemaVersion: "v0.3.1",
 		CreatedAt:     "2023-01-01T00:00:00Z",
 	}
 
@@ -278,7 +278,7 @@ func TestCachedStore_Delete(t *testing.T) {
 	meta := &corev1.RecordMeta{
 		Cid:           recordCID,
 		Annotations:   map[string]string{"test": "value"},
-		SchemaVersion: "v1",
+		SchemaVersion: "v0.3.1",
 		CreatedAt:     "2023-01-01T00:00:00Z",
 	}
 

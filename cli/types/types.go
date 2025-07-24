@@ -29,8 +29,8 @@ func DetectOASFVersion(data []byte) (string, error) {
 	}
 
 	if detector.SchemaVersion == "" {
-		// Default to v1 if no schema_version specified for backward compatibility
-		return "v1", nil
+		// Default to v0.3.1 if no schema_version specified for backward compatibility
+		return "v0.3.1", nil
 	}
 
 	return detector.SchemaVersion, nil
@@ -49,37 +49,37 @@ func LoadOASFFromReader(reader io.Reader) (*corev1.Record, error) {
 	}
 
 	switch version {
-	case "v1":
+	case "v0.3.1":
 		agent := &objectsv1.Agent{}
 
 		err := json.Unmarshal(data, agent)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal v1 Agent: %w", err)
+			return nil, fmt.Errorf("failed to unmarshal v0.3.1 Agent: %w", err)
 		}
 
 		return &corev1.Record{Data: &corev1.Record_V1{V1: agent}}, nil
 
-	case "v2":
+	case "v0.4.0":
 		agentRecord := &objectsv2.AgentRecord{}
 
 		err := json.Unmarshal(data, agentRecord)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal v2 AgentRecord: %w", err)
+			return nil, fmt.Errorf("failed to unmarshal v0.4.0 AgentRecord: %w", err)
 		}
 
 		return &corev1.Record{Data: &corev1.Record_V2{V2: agentRecord}}, nil
 
-	case "v3":
+	case "v0.5.0":
 		record := &objectsv3.Record{}
 
 		err := json.Unmarshal(data, record)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal v3 Record: %w", err)
+			return nil, fmt.Errorf("failed to unmarshal v0.5.0 Record: %w", err)
 		}
 
 		return &corev1.Record{Data: &corev1.Record_V3{V3: record}}, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported OASF version: %s", version)
+		return nil, fmt.Errorf("unsupported OASF version: %s (supported: v0.3.1, v0.4.0, v0.5.0)", version)
 	}
 }
