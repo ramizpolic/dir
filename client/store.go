@@ -122,6 +122,7 @@ func (c *Client) PushBatch(ctx context.Context, records []*corev1.Record) ([]*co
 	recordChan := make(chan *corev1.Record, len(records))
 	go func() {
 		defer close(recordChan)
+
 		for _, record := range records {
 			recordChan <- record
 		}
@@ -131,12 +132,14 @@ func (c *Client) PushBatch(ctx context.Context, records []*corev1.Record) ([]*co
 	results := c.PushStream(ctx, recordChan)
 
 	var refs []*corev1.RecordRef
+
 	var firstError error
 
 	for result := range results {
 		if result.Error != nil && firstError == nil {
 			firstError = result.Error
 		}
+
 		if result.RecordRef != nil {
 			refs = append(refs, result.RecordRef)
 		}
@@ -155,6 +158,7 @@ func (c *Client) PullBatch(ctx context.Context, recordRefs []*corev1.RecordRef) 
 	refChan := make(chan *corev1.RecordRef, len(recordRefs))
 	go func() {
 		defer close(refChan)
+
 		for _, ref := range recordRefs {
 			refChan <- ref
 		}
@@ -164,12 +168,14 @@ func (c *Client) PullBatch(ctx context.Context, recordRefs []*corev1.RecordRef) 
 	results := c.PullStream(ctx, refChan)
 
 	var records []*corev1.Record
+
 	var firstError error
 
 	for result := range results {
 		if result.Error != nil && firstError == nil {
 			firstError = result.Error
 		}
+
 		if result.Record != nil {
 			records = append(records, result.Record)
 		}
@@ -188,6 +194,7 @@ func (c *Client) LookupBatch(ctx context.Context, recordRefs []*corev1.RecordRef
 	refChan := make(chan *corev1.RecordRef, len(recordRefs))
 	go func() {
 		defer close(refChan)
+
 		for _, ref := range recordRefs {
 			refChan <- ref
 		}
@@ -197,12 +204,14 @@ func (c *Client) LookupBatch(ctx context.Context, recordRefs []*corev1.RecordRef
 	results := c.LookupStream(ctx, refChan)
 
 	var metas []*corev1.RecordMeta
+
 	var firstError error
 
 	for result := range results {
 		if result.Error != nil && firstError == nil {
 			firstError = result.Error
 		}
+
 		if result.RecordMeta != nil {
 			metas = append(metas, result.RecordMeta)
 		}
@@ -221,6 +230,7 @@ func (c *Client) DeleteBatch(ctx context.Context, recordRefs []*corev1.RecordRef
 	refChan := make(chan *corev1.RecordRef, len(recordRefs))
 	go func() {
 		defer close(refChan)
+
 		for _, ref := range recordRefs {
 			refChan <- ref
 		}

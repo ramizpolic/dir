@@ -113,7 +113,7 @@ var _ = ginkgo.Describe("Running client end-to-end tests using a local single no
 			// Generate test records
 			go func() {
 				defer close(records)
-				for i := 0; i < recordCount; i++ {
+				for i := range recordCount {
 					testAgent := &objectsv1.Agent{
 						Name:    fmt.Sprintf("stream-test-agent-%d", i),
 						Version: "v1",
