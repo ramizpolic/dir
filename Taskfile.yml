@@ -925,10 +925,11 @@ tasks:
       - abigen:install
     cmds:
       - |
+          jq .abi blockchain/personal-chain/artifacts/contracts/AgentStore.sol/AgentStore.json > /tmp/AgentStore.abi.json
           {{.BIN_DIR}}/abigen \
             --pkg agentstore \
             --out blockchain/dapps/bindings/go/agentstore/agentstore.go \
-            --abi blockchain/personal-chain/artifacts/contracts/AgentStore.sol/AgentStore.json \
+            --abi /tmp/AgentStore.abi.json \
             --type AgentStore
 
   trustless:start:
