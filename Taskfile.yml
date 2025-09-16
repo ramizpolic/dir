@@ -248,7 +248,7 @@ tasks:
 
   sdk:build:javascript:
     desc: Build javascript client SDK package
-    dir: ./sdk/javascript
+    dir: ./sdk/dir-js
     cmds:
       - npm ci
 
@@ -294,7 +294,7 @@ tasks:
 
   sdk:test:javascript:
     desc: Test javascript client SDK package
-    dir: ./sdk/javascript
+    dir: ./sdk/dir-js
     deps:
       - task: sdk:deps:common
     env:
@@ -310,7 +310,7 @@ tasks:
 
   sdk:deps:javascript:
     desc: Install deps for javascript SDK package
-    dir: ./sdk/javascript
+    dir: ./sdk/dir-js
     cmds:
       - npm install
 
@@ -335,7 +335,7 @@ tasks:
 
   sdk:release:javascript:
     desc: Release javascript client SDK package
-    dir: ./sdk/javascript
+    dir: ./sdk/dir-js
     env:
       NODE_AUTH_TOKEN: '{{ .NODE_AUTH_TOKEN }}'
     cmds:
