@@ -7,12 +7,8 @@ import {env} from 'node:process';
 import {writeFileSync} from 'node:fs';
 import {execSync} from 'node:child_process';
 
-import {
-  Client as GrpcClient,
-  createClient,
-  Transport,
-} from '@connectrpc/connect';
-import {createGrpcTransport} from '@connectrpc/connect-node';
+import { ChannelCredentials } from "@grpc/grpc-js";
+import { GrpcTransport } from '@protobuf-ts/grpc-transport';
 
 import * as models from '../models';
 
@@ -35,8 +31,8 @@ export class Config {
    * @param dirctlPath - Path to the dirctl executable. Defaults to 'dirctl'
    */
   constructor(
-    serverAddress = Config.DEFAULT_SERVER_ADDRESS,
-    dirctlPath = Config.DEFAULT_DIRCTL_PATH,
+    serverAddress: string = Config.DEFAULT_SERVER_ADDRESS,
+    dirctlPath: string = Config.DEFAULT_DIRCTL_PATH,
   ) {
     // add protocol prefix if not set
     // use unsafe http unless spire is used
@@ -66,7 +62,7 @@ export class Config {
    * const config = Config.loadFromEnv("MY_APP_");
    * ```
    */
-  static loadFromEnv(prefix = 'DIRECTORY_CLIENT_') {
+  static loadFromEnv(prefix: string = 'DIRECTORY_CLIENT_') {
     const serverAddress =
       env[`${prefix}SERVER_ADDRESS`] || Config.DEFAULT_SERVER_ADDRESS;
     const dirctlPath = env['DIRCTL_PATH'] || Config.DEFAULT_DIRCTL_PATH;
@@ -97,11 +93,11 @@ export class Config {
  */
 export class Client {
   config: Config;
-  storeClient: GrpcClient<typeof models.store_v1.StoreService>;
-  routingClient: GrpcClient<typeof models.routing_v1.RoutingService>;
-  searchClient: GrpcClient<typeof models.search_v1.SearchService>;
-  signClient: GrpcClient<typeof models.sign_v1.SignService>;
-  syncClient: GrpcClient<typeof models.store_v1.SyncService>;
+  storeClient: models.store_v1.IStoreServiceClient;
+  routingClient: models.routing_v1.IRoutingServiceClient;
+  searchClient: models.search_v1.ISearchServiceClient;
+  signClient: models.sign_v1.ISignServiceClient;
+  syncClient: models.store_v1.ISyncServiceClient;
 
   /**
    * Initialize the client with the given configuration.
@@ -129,28 +125,17 @@ export class Client {
     this.config = config;
 
     // Create transport settings for gRPC client
-    const transport: Transport = createGrpcTransport({
-      baseUrl: this.config.serverAddress,
+    const transport = new GrpcTransport({
+        host: this.config.serverAddress,
+        channelCredentials: ChannelCredentials.createInsecure(),
     });
 
     // Set clients for all services
-    this.storeClient = createClient(models.store_v1.StoreService, transport);
-    this.routingClient = createClient(
-      models.routing_v1.RoutingService,
-      transport,
-    );
-    this.searchClient = createClient(models.search_v1.SearchService, transport);
-    this.signClient = createClient(models.sign_v1.SignService, transport);
-    this.syncClient = createClient(models.store_v1.SyncService, transport);
-  }
-
-  /**
-   * Request generator helper function for streaming requests.
-   */
-  private async *requestGenerator<T>(reqs: T[]): AsyncIterable<T> {
-    for (const req of reqs) {
-      yield req;
-    }
+    this.storeClient = new models.store_v1.StoreServiceClient(transport);
+    this.routingClient = new models.routing_v1.RoutingServiceClient(transport);
+    this.searchClient = new models.search_v1.SearchServiceClient(transport);
+    this.signClient = new models.sign_v1.SignServiceClient(transport);
+    this.syncClient = new models.store_v1.SyncServiceClient(transport);
   }
 
   /**
@@ -177,10 +162,16 @@ export class Client {
   ): Promise<models.core_v1.RecordRef[]> {
     const responses: models.core_v1.RecordRef[] = [];
 
-    for await (const response of this.storeClient.push(
-      this.requestGenerator(records),
-    )) {
-      responses.push(response);
+    // Send requests
+    const call = this.storeClient.push();
+    for (const record of records) {
+        await call.requests.send(record);
+    }
+    await call.requests.complete();
+
+    // Collect responses
+    for await (const response of call.responses) {
+        responses.push(response);
     }
 
     return responses;
@@ -208,11 +199,17 @@ export class Client {
     requests: models.store_v1.PushReferrerRequest[],
   ): Promise<models.store_v1.PushReferrerResponse[]> {
     const responses: models.store_v1.PushReferrerResponse[] = [];
+    
+    // Send requests
+    const call = this.storeClient.pushReferrer();
+    for (const request of requests) {
+        await call.requests.send(request);
+    }
+    await call.requests.complete();
 
-    for await (const response of this.storeClient.pushReferrer(
-      this.requestGenerator(requests),
-    )) {
-      responses.push(response);
+    // Collect responses
+    for await (const response of call.responses) {
+        responses.push(response);
     }
 
     return responses;
@@ -243,10 +240,16 @@ export class Client {
   ): Promise<models.core_v1.Record[]> {
     const records: models.core_v1.Record[] = [];
 
-    for await (const response of this.storeClient.pull(
-      this.requestGenerator(refs),
-    )) {
-      records.push(response);
+    // Send requests
+    const call = this.storeClient.pull();
+    for (const ref of refs) {
+        await call.requests.send(ref);
+    }
+    await call.requests.complete();
+
+    // Collect responses
+    for await (const response of call.responses) {
+        records.push(response);
     }
 
     return records;
@@ -277,11 +280,17 @@ export class Client {
     requests: models.store_v1.PullReferrerRequest[],
   ): Promise<models.store_v1.PullReferrerResponse[]> {
     const responses: models.store_v1.PullReferrerResponse[] = [];
+    
+    // Send requests
+    const call = this.storeClient.pullReferrer();
+    for (const request of requests) {
+        await call.requests.send(request);
+    }
+    await call.requests.complete();
 
-    for await (const response of this.storeClient.pullReferrer(
-      this.requestGenerator(requests),
-    )) {
-      responses.push(response);
+    // Collect responses
+    for await (const response of call.responses) {
+        responses.push(response);
     }
 
     return responses;
@@ -313,8 +322,13 @@ export class Client {
   ): Promise<models.search_v1.SearchResponse[]> {
     const responses: models.search_v1.SearchResponse[] = [];
 
-    for await (const response of this.searchClient.search(request)) {
-      responses.push(response);
+    // Send requests
+    const call = this.searchClient.search(request);
+    
+    // Collect responses
+    const results: models.search_v1.SearchResponse[] = [];
+    for await (const response of call.responses) {
+        results.push(response);
     }
 
     return responses;
@@ -346,10 +360,16 @@ export class Client {
   ): Promise<models.core_v1.RecordMeta[]> {
     const recordMetas: models.core_v1.RecordMeta[] = [];
 
-    for await (const response of this.storeClient.lookup(
-      this.requestGenerator(refs),
-    )) {
-      recordMetas.push(response);
+    // Send requests
+    const call = this.storeClient.lookup();
+    for (const ref of refs) {
+        await call.requests.send(ref);
+    }
+    await call.requests.complete();
+
+    // Collect responses
+    for await (const response of call.responses) {
+        recordMetas.push(response);
     }
 
     return recordMetas;
@@ -380,8 +400,12 @@ export class Client {
   ): Promise<models.routing_v1.ListResponse[]> {
     const results: models.routing_v1.ListResponse[] = [];
 
-    for await (const response of this.routingClient.list(request)) {
-      results.push(response);
+    // Send requests
+    const call = this.routingClient.list(request);
+    
+    // Collect responses
+    for await (const response of call.responses) {
+        results.push(response);
     }
 
     return results;
@@ -451,7 +475,16 @@ export class Client {
    * ```
    */
   async delete(refs: models.core_v1.RecordRef[]): Promise<void> {
-    await this.storeClient.delete(this.requestGenerator(refs));
+    // Send requests
+    const call = this.storeClient.delete();
+    for (const ref of refs) {
+        await call.requests.send(ref);
+
+    }
+    await call.requests.complete();
+
+    // Wait for completion (no response data expected)
+    await call.response;
   }
 
   /**
@@ -480,11 +513,11 @@ export class Client {
    * ```
    */
   sign(req: models.sign_v1.SignRequest, oidc_client_id = 'sigstore'): void {
-    switch (req.provider?.request.case) {
+    switch (req.provider?.request.oneofKind) {
       case 'oidc':
         this.__sign_with_oidc(
           req.recordRef?.cid || '',
-          req.provider.request.value,
+          req.provider.request.oidc,
           oidc_client_id,
         );
         return;
@@ -492,7 +525,7 @@ export class Client {
       case 'key':
         this.__sign_with_key(
           req.recordRef?.cid || '',
-          req.provider.request.value,
+          req.provider.request.key,
         );
         return;
 
@@ -525,7 +558,8 @@ export class Client {
   async verify(
     request: models.sign_v1.VerifyRequest,
   ): Promise<models.sign_v1.VerifyResponse> {
-    return await this.signClient.verify(request);
+    const call = await this.signClient.verify(request);
+    return call.response;
   }
 
   /**
@@ -552,7 +586,8 @@ export class Client {
   async create_sync(
     request: models.store_v1.CreateSyncRequest,
   ): Promise<models.store_v1.CreateSyncResponse> {
-    return await this.syncClient.createSync(request);
+    const call = await this.syncClient.createSync(request);
+    return call.response;
   }
 
   /**
@@ -583,8 +618,12 @@ export class Client {
   ): Promise<models.store_v1.ListSyncsItem[]> {
     const results: models.store_v1.ListSyncsItem[] = [];
 
-    for await (const response of this.syncClient.listSyncs(request)) {
-      results.push(response);
+    // Send requests
+    const call = this.syncClient.listSyncs(request);
+    
+    // Collect responses
+    for await (const response of call.responses) {
+        results.push(response);
     }
 
     return results;
@@ -614,7 +653,8 @@ export class Client {
   async get_sync(
     request: models.store_v1.GetSyncRequest,
   ): Promise<models.store_v1.GetSyncResponse> {
-    return await this.syncClient.getSync(request);
+    const call = await this.syncClient.getSync(request);
+    return call.response;
   }
 
   /**
@@ -639,7 +679,8 @@ export class Client {
   async delete_sync(
     request: models.store_v1.DeleteSyncRequest,
   ): Promise<models.store_v1.DeleteSyncResponse> {
-    return await this.syncClient.deleteSync(request);
+    const call = await this.syncClient.deleteSync(request);
+    return call.response;
   }
 
   /**

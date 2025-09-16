@@ -40,13 +40,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@buf/agntcy_dir.bufbuild_es": "^2.8.0-20250915154105-152c4b7b4ec6.1",
-    "@bufbuild/protobuf": "^2.8.0",
-    "@connectrpc/connect": "^2.1.0",
-    "@connectrpc/connect-node": "^2.1.0",
-    "@grpc/grpc-js": "^1.13.4"
+    "@buf/agntcy_dir.community_timostamm-protobuf-ts": "^2.11.1-20250915154105-152c4b7b4ec6.1",
+    "@grpc/grpc-js": "^1.13.4",
+    "@protobuf-ts/grpc-transport": "^2.11.1",
+    "@protobuf-ts/runtime": "^2.11.1"
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.52.13",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@types/node": "^22.7.5",

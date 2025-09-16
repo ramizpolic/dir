@@ -10,6 +10,10 @@ const pkg = JSON.parse(
   readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
 );
 
+const externalPackages = [
+  '@grpc/grpc-js',
+];
+
 const rollupPlugins = [
   nodeResolve(),
   typescript({
@@ -32,6 +36,7 @@ export default [
       sourcemap: true,
     },
     plugins: rollupPlugins,
+    external: externalPackages,
   },
 
   // Cross CJS module (dist/index.cjs)
@@ -43,5 +48,6 @@ export default [
       sourcemap: true,
     },
     plugins: rollupPlugins,
+    external: externalPackages,
   },
 ];
