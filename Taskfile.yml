@@ -171,6 +171,30 @@ tasks:
     cmds:
       - CGO_ENABLED=0 GOOS={{.GOOS}} GOARCH={{.GOARCH}} go build -ldflags="{{ .LDFLAGS }}" -o "{{.OUT_BINARY}}" cli.go
 
+  wasm:compile:
+    desc: Compile WASM libraries
+    dir: './sdk/wasm'
+    vars:
+      GO_FILE: '{{.ROOT_DIR}}/sdk/wasm/main.go'
+      INTERNAL_DIR: '{{.ROOT_DIR}}/sdk/wasm/internal'
+      WASM_INPUT: '{{.ROOT_DIR}}/sdk/wasm/dir:sdk@0.1.0.wasm'
+      WASM_OUTPUT: '{{ .ROOT_DIR }}/sdk/wasm/compiled.sdk.wasm'
+      WASM_WORLD: 'sdk'
+    cmds:
+      - wkg wit build
+      - go tool wit-bindgen-go generate --world {{.WASM_WORLD}} --out {{.INTERNAL_DIR}} {{.WASM_INPUT}}
+      - tinygo build -target=wasip2 -o {{.WASM_OUTPUT}} --wit-package {{.WASM_INPUT}} --wit-world {{.WASM_WORLD}} {{.GO_FILE}}
+      - wasm-tools component wit {{.WASM_OUTPUT}}
+
+  wasm:test:
+    desc: Test WASM libraries
+    dir: './sdk/wasm/test'
+    vars:
+      WASM_OUTPUT: '{{ .ROOT_DIR }}/sdk/wasm/compiled.sdk.wasm'
+    cmds:
+      - cp {{.WASM_OUTPUT}} sdk.wasm
+      - cargo run --release -- 1 2 sdk.wasm
+
   cli:compile:all:
     desc: Compile CLI client binaries for multiple platforms
     aliases: [compile]
