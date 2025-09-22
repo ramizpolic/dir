@@ -1,7 +1,7 @@
 # Copyright AGNTCY Contributors (https://github.com/agntcy)
 # SPDX-License-Identifier: Apache-2.0
 
-version: '3'
+version: "3"
 
 vars:
   ## Version
@@ -11,43 +11,43 @@ vars:
   COMMIT_SHA:
     sh: git rev-parse --short HEAD
   COMMIT_SHA_LDFLAG: "-X 'github.com/agntcy/dir/api/version.CommitHash={{ .COMMIT_SHA }}'"
-  VERSION_LDFLAGS: '{{ .RELEASE_VERSION_LDFLAG }} {{ .COMMIT_SHA_LDFLAG }}'
+  VERSION_LDFLAGS: "{{ .RELEASE_VERSION_LDFLAG }} {{ .COMMIT_SHA_LDFLAG }}"
 
   ## Image config
   IMAGE_REPO: '{{ .IMAGE_REPO | default "ghcr.io/agntcy" }}'
-  IMAGE_TAG: '{{ .IMAGE_TAG | default .COMMIT_SHA }}'
-  IMAGE_BAKE_ENV: 'IMAGE_REPO={{.IMAGE_REPO}} IMAGE_TAG={{.IMAGE_TAG}}'
+  IMAGE_TAG: "{{ .IMAGE_TAG | default .COMMIT_SHA }}"
+  IMAGE_BAKE_ENV: "IMAGE_REPO={{.IMAGE_REPO}} IMAGE_TAG={{.IMAGE_TAG}}"
   IMAGE_BAKE_OPTS: '{{ .IMAGE_BAKE_OPTS | default "" }}'
   BAKE_ENV: '{{ .IMAGE_BAKE_ENV }} EXTRA_LDFLAGS="{{.VERSION_LDFLAGS}}"'
 
   ## Dependency config
-  BIN_DIR: '{{ .ROOT_DIR }}/bin'
-  DIRCTL_BIN: '{{ .BIN_DIR}}/dirctl'
-  HELM_VERSION: '3.16.3'
-  HELM_BIN: '{{ .BIN_DIR }}/helm-{{.HELM_VERSION}}'
-  KUBECTL_VERSION: '1.31.3'
-  KUBECTL_BIN: '{{ .BIN_DIR }}/kubectl-{{.KUBECTL_VERSION}}'
-  KIND_VERSION: '0.25.0'
-  KIND_BIN: '{{ .BIN_DIR }}/kind-{{.KIND_VERSION}}'
-  PROTOC_VERSION: '27.1'
-  PROTOC_BIN: '{{ .BIN_DIR }}/protoc-{{.PROTOC_VERSION}}'
-  BUFBUILD_VERSION: '1.50.1'
-  BUFBUILD_BIN: '{{ .BIN_DIR }}/bufbuild-{{.BUFBUILD_VERSION}}'
-  GO_VERSION: '1.24.5'
-  MULTIMOD_VERSION: '0.17.0'
-  MULTIMOD_BIN: '{{ .BIN_DIR }}/multimod-{{.MULTIMOD_VERSION}}'
-  GOLANGCI_LINT_VERSION: '1.64.7'
-  GOLANGCI_LINT_BIN: '{{ .BIN_DIR }}/golangci-lint-{{.GOLANGCI_LINT_VERSION}}'
-  LICENSEI_VERSION: '0.9.0'
-  LICENSEI_BIN: '{{ .BIN_DIR }}/licensei-{{.LICENSEI_VERSION}}'
-  UV_VERSION: '0.6.1'
-  UV_BIN: '{{ .BIN_DIR }}/uv-{{.UV_VERSION}}'
+  BIN_DIR: "{{ .ROOT_DIR }}/bin"
+  DIRCTL_BIN: "{{ .BIN_DIR}}/dirctl"
+  HELM_VERSION: "3.16.3"
+  HELM_BIN: "{{ .BIN_DIR }}/helm-{{.HELM_VERSION}}"
+  KUBECTL_VERSION: "1.31.3"
+  KUBECTL_BIN: "{{ .BIN_DIR }}/kubectl-{{.KUBECTL_VERSION}}"
+  KIND_VERSION: "0.25.0"
+  KIND_BIN: "{{ .BIN_DIR }}/kind-{{.KIND_VERSION}}"
+  PROTOC_VERSION: "27.1"
+  PROTOC_BIN: "{{ .BIN_DIR }}/protoc-{{.PROTOC_VERSION}}"
+  BUFBUILD_VERSION: "1.50.1"
+  BUFBUILD_BIN: "{{ .BIN_DIR }}/bufbuild-{{.BUFBUILD_VERSION}}"
+  GO_VERSION: "1.24.5"
+  MULTIMOD_VERSION: "0.17.0"
+  MULTIMOD_BIN: "{{ .BIN_DIR }}/multimod-{{.MULTIMOD_VERSION}}"
+  GOLANGCI_LINT_VERSION: "1.64.7"
+  GOLANGCI_LINT_BIN: "{{ .BIN_DIR }}/golangci-lint-{{.GOLANGCI_LINT_VERSION}}"
+  LICENSEI_VERSION: "0.9.0"
+  LICENSEI_BIN: "{{ .BIN_DIR }}/licensei-{{.LICENSEI_VERSION}}"
+  UV_VERSION: "0.6.1"
+  UV_BIN: "{{ .BIN_DIR }}/uv-{{.UV_VERSION}}"
   UV_PUBLISH_TOKEN: '{{ .UV_PUBLISH_TOKEN | default "" }}'
-  COSIGN_VERSION: '2.5.3'
-  COSIGN_BIN: '{{ .BIN_DIR }}/cosign-{{.COSIGN_VERSION}}'
-  HUB_API_VERSION: 'main'
-  HUB_REPO_URL: 'https://github.com/cisco-eti/phoenix-saas-be.git'
-  ZOT_VERSION: '2.1.8'
+  COSIGN_VERSION: "2.5.3"
+  COSIGN_BIN: "{{ .BIN_DIR }}/cosign-{{.COSIGN_VERSION}}"
+  HUB_API_VERSION: "main"
+  HUB_REPO_URL: "https://github.com/cisco-eti/phoenix-saas-be.git"
+  ZOT_VERSION: "2.1.8"
 
 tasks:
   ##
@@ -75,14 +75,14 @@ tasks:
       - task: deps:tidy
       - task: gen
     vars:
-      GOARCH: '{{ .GOARCH | default ARCH }}'
+      GOARCH: "{{ .GOARCH | default ARCH }}"
     cmds:
-      - '{{.BAKE_ENV}} docker buildx bake {{.IMAGE_BAKE_OPTS}} --set *.platform=linux/{{.GOARCH}}'
+      - "{{.BAKE_ENV}} docker buildx bake {{.IMAGE_BAKE_OPTS}} --set *.platform=linux/{{.GOARCH}}"
 
   build:all:
     desc: Build images for all components for multiple platforms
     cmds:
-      - '{{.BAKE_ENV}} docker buildx bake {{.IMAGE_BAKE_OPTS}} --set *.platform=linux/amd64,linux/arm64'
+      - "{{.BAKE_ENV}} docker buildx bake {{.IMAGE_BAKE_OPTS}} --set *.platform=linux/amd64,linux/arm64"
 
   pull:
     desc: Pull images for all components
@@ -99,21 +99,21 @@ tasks:
     prompt:
       - Are you sure you want to push the images to remote registry?
     cmds:
-      - '{{.BAKE_ENV}} docker buildx bake {{.IMAGE_BAKE_OPTS}} --set=*.output=type=registry'
+      - "{{.BAKE_ENV}} docker buildx bake {{.IMAGE_BAKE_OPTS}} --set=*.output=type=registry"
 
   release:verify:
     desc: Verify release readiness
     deps:
       - task: deps:multimod-bin
     cmds:
-      - '{{ .MULTIMOD_BIN }} verify'
+      - "{{ .MULTIMOD_BIN }} verify"
 
   release:prepare:
     desc: Prepare release
     deps:
       - task: deps:multimod-bin
     cmds:
-      - '{{ .MULTIMOD_BIN }} prerelease --all-module-sets --skip-go-mod-tidy=true --commit-to-different-branch=false'
+      - "{{ .MULTIMOD_BIN }} prerelease --all-module-sets --skip-go-mod-tidy=true --commit-to-different-branch=false"
 
   ##
   ## API
@@ -163,11 +163,11 @@ tasks:
     desc: Compile CLI binaries
     dir: ./cli
     vars:
-      GOOS: '{{ .GOOS | default OS }}'
-      GOARCH: '{{ .GOARCH | default ARCH }}'
+      GOOS: "{{ .GOOS | default OS }}"
+      GOARCH: "{{ .GOARCH | default ARCH }}"
       BINARY_NAME: '{{ .BINARY_NAME | default "dirctl" }}'
       OUT_BINARY: '{{ if eq OS "windows" }}{{ .ROOT_DIR }}\\bin\\{{ .BINARY_NAME }}.exe{{ else }}{{ .ROOT_DIR }}/bin/{{ .BINARY_NAME }}{{ end }}'
-      LDFLAGS: '-s -w -extldflags -static {{ .VERSION_LDFLAGS }}'
+      LDFLAGS: "-s -w -extldflags -static {{ .VERSION_LDFLAGS }}"
     cmds:
       - CGO_ENABLED=0 GOOS={{.GOOS}} GOARCH={{.GOARCH}} go build -ldflags="{{ .LDFLAGS }}" -o "{{.OUT_BINARY}}" cli.go
 
@@ -177,8 +177,8 @@ tasks:
     cmds:
       - for:
           matrix:
-            OS: ['linux', 'darwin', 'windows']
-            ARCH: ['amd64', 'arm64']
+            OS: ["linux", "darwin", "windows"]
+            ARCH: ["amd64", "arm64"]
         cmd: |
           # Skip unsupported combinations (e.g., Windows ARM64)
           if [ "{{.ITEM.OS}}" = "windows" ] && [ "{{.ITEM.ARCH}}" = "arm64" ]; then
@@ -246,7 +246,7 @@ tasks:
     deps:
       - task: deps:uv
     cmds:
-      - '{{.UV_BIN}} build'
+      - "{{.UV_BIN}} build"
 
   sdk:build:javascript:
     desc: Build javascript client SDK package
@@ -271,17 +271,17 @@ tasks:
   sdk:test-env:spiffe:load-test-image:
     desc: Load the SDK tests into KinD
     cmds:
-      - '{{.BAKE_ENV}} docker buildx bake sdks-test {{.IMAGE_BAKE_OPTS}}'
-      - '{{.KUBECTL_BIN}} config use-context kind-dir.example'
-      - '{{.KIND_BIN}} load docker-image ghcr.io/agntcy/sdks-test:{{.IMAGE_TAG}} --name dir.example'
+      - "{{.BAKE_ENV}} docker buildx bake sdks-test {{.IMAGE_BAKE_OPTS}}"
+      - "{{.KUBECTL_BIN}} config use-context kind-dir.example"
+      - "{{.KIND_BIN}} load docker-image ghcr.io/agntcy/sdks-test:{{.IMAGE_TAG}} --name dir.example"
 
   sdk:test:all:spiffe:
     desc: Test all client SDK pacakges with spiffe
     dir: ./e2e/sdk
     cmds:
-      - '{{.KUBECTL_BIN}} config use-context kind-dir.example'
-      - '{{.HELM_BIN}} uninstall sdk-tests --wait --keep-history --ignore-not-found > /dev/null || true'
-      - '{{.HELM_BIN}} install --replace --timeout 1m --wait --wait-for-jobs sdk-tests ./chart -f chart/values.yaml --set image.tag={{.IMAGE_TAG}} > /dev/null || true'
+      - "{{.KUBECTL_BIN}} config use-context kind-dir.example"
+      - "{{.HELM_BIN}} uninstall sdk-tests --wait --keep-history --ignore-not-found > /dev/null || true"
+      - "{{.HELM_BIN}} install --replace --timeout 1m --wait --wait-for-jobs sdk-tests ./chart -f chart/values.yaml --set image.tag={{.IMAGE_TAG}} > /dev/null || true"
       - |
         status=$({{.KUBECTL_BIN}} get job sdks-test -o jsonpath='{.status.conditions[0].type}')
         status_value=$({{.KUBECTL_BIN}} get job sdks-test -o jsonpath='{.status.conditions[0].status}')
@@ -313,10 +313,10 @@ tasks:
     deps:
       - task: deps:uv
     env:
-      DIRECTORY_CLIENT_SERVER_ADDRESS: '0.0.0.0:8890'
-      DIRECTORY_SERVER_PEER1_ADDRESS: '0.0.0.0:8891'
-      DIRECTORY_SERVER_PEER2_ADDRESS: '0.0.0.0:8892'
-      KIND_CLUSTER_NAME: 'sdk-py-test'
+      DIRECTORY_CLIENT_SERVER_ADDRESS: "0.0.0.0:8890"
+      DIRECTORY_SERVER_PEER1_ADDRESS: "0.0.0.0:8891"
+      DIRECTORY_SERVER_PEER2_ADDRESS: "0.0.0.0:8892"
+      KIND_CLUSTER_NAME: "sdk-py-test"
     cmds:
       - task: sdk:test-env:create
       - defer: { task: sdk:test-env:delete }
@@ -330,10 +330,10 @@ tasks:
     desc: Test javascript client SDK package
     dir: ./sdk/dir-js
     env:
-      DIRECTORY_CLIENT_SERVER_ADDRESS: '0.0.0.0:8890'
-      DIRECTORY_SERVER_PEER1_ADDRESS: '0.0.0.0:8891'
-      DIRECTORY_SERVER_PEER2_ADDRESS: '0.0.0.0:8892'
-      KIND_CLUSTER_NAME: 'sdk-js-test'
+      DIRECTORY_CLIENT_SERVER_ADDRESS: "0.0.0.0:8890"
+      DIRECTORY_SERVER_PEER1_ADDRESS: "0.0.0.0:8891"
+      DIRECTORY_SERVER_PEER2_ADDRESS: "0.0.0.0:8892"
+      KIND_CLUSTER_NAME: "sdk-js-test"
     cmds:
       - task: sdk:test-env:create
       - defer: { task: sdk:test-env:delete }
@@ -352,8 +352,8 @@ tasks:
   sdk:release:all:
     desc: Release all client SDK package
     env:
-      UV_PUBLISH_TOKEN: '{{ .UV_PUBLISH_TOKEN }}'
-      NODE_AUTH_TOKEN: '{{ .NODE_AUTH_TOKEN }}'
+      UV_PUBLISH_TOKEN: "{{ .UV_PUBLISH_TOKEN }}"
+      NODE_AUTH_TOKEN: "{{ .NODE_AUTH_TOKEN }}"
     cmds:
       - task: sdk:release:javascript
       - task: sdk:release:python
@@ -362,17 +362,17 @@ tasks:
     desc: Release python client SDK package
     dir: ./sdk/dir-py
     env:
-      UV_PUBLISH_TOKEN: '{{ .UV_PUBLISH_TOKEN }}'
+      UV_PUBLISH_TOKEN: "{{ .UV_PUBLISH_TOKEN }}"
     deps:
       - task: deps:uv
     cmds:
-      - '{{.UV_BIN}} publish'
+      - "{{.UV_BIN}} publish"
 
   sdk:release:javascript:
     desc: Release javascript client SDK package
     dir: ./sdk/dir-js
     env:
-      NODE_AUTH_TOKEN: '{{ .NODE_AUTH_TOKEN }}'
+      NODE_AUTH_TOKEN: "{{ .NODE_AUTH_TOKEN }}"
     cmds:
       - npm publish --scope=@agntcy --access public
 
@@ -382,7 +382,7 @@ tasks:
   server:build:
     desc: Build Directory server image
     cmds:
-      - '{{.BAKE_ENV}} docker buildx bake {{.IMAGE_BAKE_OPTS}} dir-apiserver'
+      - "{{.BAKE_ENV}} docker buildx bake {{.IMAGE_BAKE_OPTS}} dir-apiserver"
 
   server:start:
     desc: Start Directory server
@@ -397,7 +397,7 @@ tasks:
   server:store:pull:
     desc: Pull local OCI registry server docker image
     vars:
-      IMAGE: '{{.IMAGE}}'
+      IMAGE: "{{.IMAGE}}"
     cmds:
       - |
         docker pull {{.IMAGE}}
@@ -410,7 +410,7 @@ tasks:
     deps:
       - task: server:store:pull
         vars:
-          IMAGE: '{{.IMAGE}}'
+          IMAGE: "{{.IMAGE}}"
     cmds:
       - |
         # mount config
@@ -479,11 +479,11 @@ tasks:
       KIND_CREATE_OPTS: '{{ .KIND_CREATE_OPTS | default "" }}'
     cmds:
       # Create ephemeral cluster
-      - '{{ .KIND_BIN }} create cluster {{ .KIND_CREATE_OPTS }} --name {{ .KIND_CLUSTER_NAME }}'
-      - '{{ .KIND_BIN }} export kubeconfig --name {{ .KIND_CLUSTER_NAME }}'
+      - "{{ .KIND_BIN }} create cluster {{ .KIND_CREATE_OPTS }} --name {{ .KIND_CLUSTER_NAME }}"
+      - "{{ .KIND_BIN }} export kubeconfig --name {{ .KIND_CLUSTER_NAME }}"
 
       # Check cluster status
-      - '{{ .KUBECTL_BIN }} cluster-info'
+      - "{{ .KUBECTL_BIN }} cluster-info"
 
       # Import images
       - |
@@ -503,8 +503,8 @@ tasks:
       KIND_CREATE_OPTS: '{{ .KIND_CREATE_OPTS | default "" }}'
       # Helm args
       HELM_NAMESPACE: '{{ .HELM_NAMESPACE | default "dir-server" }}'
-      HELM_CHART_PATH: '{{ .ROOT_DIR }}/install/charts/dir'
-      HELM_VALUES_PATH: '{{ .ROOT_DIR }}/install/charts/dir/values.yaml'
+      HELM_CHART_PATH: "{{ .ROOT_DIR }}/install/charts/dir"
+      HELM_VALUES_PATH: "{{ .ROOT_DIR }}/install/charts/dir/values.yaml"
     cmds:
       # TODO: make logic idempotent so that running functional tests does not change previous contexts
 
@@ -533,14 +533,14 @@ tasks:
     vars:
       KIND_CLUSTER_NAME: '{{ .KIND_CLUSTER_NAME | default "agntcy-cluster" }}'
     cmds:
-      - '{{ .KIND_BIN }} export kubeconfig --name {{ .KIND_CLUSTER_NAME }}'
+      - "{{ .KIND_BIN }} export kubeconfig --name {{ .KIND_CLUSTER_NAME }}"
 
   deploy:kubernetes:dir:
     desc: Deploy DIR helm chart
     vars:
       HELM_NAMESPACE: '{{ .HELM_NAMESPACE | default "dir-server" }}'
-      HELM_CHART_PATH: '{{ .ROOT_DIR }}/install/charts/dir'
-      HELM_VALUES_PATH: '{{ .ROOT_DIR }}/install/charts/dir/values.yaml'
+      HELM_CHART_PATH: "{{ .ROOT_DIR }}/install/charts/dir"
+      HELM_VALUES_PATH: "{{ .ROOT_DIR }}/install/charts/dir/values.yaml"
       HELM_EXTRA_ARGS: '{{ .HELM_EXTRA_ARGS | default "" }}'
     cmds:
       - task: deploy:zot:config
@@ -564,8 +564,8 @@ tasks:
     desc: Deploy DIRCTL helm chart
     vars:
       HELM_NAMESPACE: '{{ .HELM_NAMESPACE | default "dir-client" }}'
-      HELM_CHART_PATH: '{{ .ROOT_DIR }}/install/charts/dirctl'
-      HELM_VALUES_PATH: '{{ .ROOT_DIR }}/install/charts/dirctl/values.yaml'
+      HELM_CHART_PATH: "{{ .ROOT_DIR }}/install/charts/dirctl"
+      HELM_VALUES_PATH: "{{ .ROOT_DIR }}/install/charts/dirctl/values.yaml"
       HELM_EXTRA_ARGS: '{{ .HELM_EXTRA_ARGS | default "" }}'
     cmds:
       - |
@@ -645,7 +645,7 @@ tasks:
       # Kind args
       KIND_CLUSTER_NAME: '{{ .KIND_CLUSTER_NAME | default "agntcy-cluster" }}'
     cmds:
-      - '{{ .KIND_BIN }} delete cluster --name {{ .KIND_CLUSTER_NAME }}'
+      - "{{ .KIND_BIN }} delete cluster --name {{ .KIND_CLUSTER_NAME }}"
 
   deploy:kubernetes:network:bootstrap:
     internal: true
@@ -655,8 +655,8 @@ tasks:
       - deps:dirctl-bin
     vars:
       # Helm args
-      HELM_CHART_PATH: '{{ .ROOT_DIR }}/install/charts/dir'
-      HELM_VALUES_PATH: '{{ .ROOT_DIR }}/install/charts/dir/values.yaml'
+      HELM_CHART_PATH: "{{ .ROOT_DIR }}/install/charts/dir"
+      HELM_VALUES_PATH: "{{ .ROOT_DIR }}/install/charts/dir/values.yaml"
     cmds:
       # Generate private key if it doesn't exist
       - |
@@ -699,17 +699,17 @@ tasks:
     aliases: [deploy:network]
     desc: Deploy a network of Directory servers in Kubernetes (1 bootstrap + 3 peers)
     vars:
-      HELM_CHART_PATH: '{{ .ROOT_DIR }}/install/charts/dir'
-      HELM_VALUES_PATH: '{{ .ROOT_DIR }}/install/charts/dir/values.yaml'
+      HELM_CHART_PATH: "{{ .ROOT_DIR }}/install/charts/dir"
+      HELM_VALUES_PATH: "{{ .ROOT_DIR }}/install/charts/dir/values.yaml"
     cmds:
       # Deploy bootstrap with explicit var passing (not as dependency)
       - task: deploy:kubernetes:network:bootstrap
         vars:
-          PUBLICATION_SCHEDULER_INTERVAL: '{{ .PUBLICATION_SCHEDULER_INTERVAL }}'
+          PUBLICATION_SCHEDULER_INTERVAL: "{{ .PUBLICATION_SCHEDULER_INTERVAL }}"
       # Create zot configuration for each peer using helper task
       - for:
           matrix:
-            PEER: ['peer1', 'peer2', 'peer3']
+            PEER: ["peer1", "peer2", "peer3"]
         task: deploy:zot:config
         vars:
           ZOT_CONFIG_DIR: /opt/zot-config-{{ .ITEM.PEER }}
@@ -717,7 +717,7 @@ tasks:
       # Deploy the peer servers using Helm
       - for:
           matrix:
-            PEER: ['peer1', 'peer2', 'peer3']
+            PEER: ["peer1", "peer2", "peer3"]
         cmd: |
           export $(cat .env)
           {{ .HELM_BIN }} upgrade agntcy-dir \
@@ -742,9 +742,9 @@ tasks:
     desc: Set up port-forwarding for the peers
     cmds:
       # Port-forward dependency services
-      - '{{ .KUBECTL_BIN }} port-forward svc/agntcy-dir-apiserver -n peer1 8890:8888 &'
-      - '{{ .KUBECTL_BIN }} port-forward svc/agntcy-dir-apiserver -n peer2 8891:8888 &'
-      - '{{ .KUBECTL_BIN }} port-forward svc/agntcy-dir-apiserver -n peer3 8892:8888 &'
+      - "{{ .KUBECTL_BIN }} port-forward svc/agntcy-dir-apiserver -n peer1 8890:8888 &"
+      - "{{ .KUBECTL_BIN }} port-forward svc/agntcy-dir-apiserver -n peer2 8891:8888 &"
+      - "{{ .KUBECTL_BIN }} port-forward svc/agntcy-dir-apiserver -n peer3 8892:8888 &"
 
       # Delay to ensure services are online
       - sleep 10
@@ -766,11 +766,11 @@ tasks:
       # Delete helm releases
       - for:
           matrix:
-            PEER: ['bootstrap', 'peer1', 'peer2', 'peer3']
+            PEER: ["bootstrap", "peer1", "peer2", "peer3"]
         cmd: |
           {{ .HELM_BIN }} delete --namespace {{ .ITEM.PEER }} agntcy-dir
 
-      - '{{ .KIND_BIN }} delete cluster --name {{ .KIND_CLUSTER_NAME }}'
+      - "{{ .KIND_BIN }} delete cluster --name {{ .KIND_CLUSTER_NAME }}"
 
   deploy:zot:config:
     internal: true
@@ -839,16 +839,16 @@ tasks:
     deps:
       - task: cli:test
         vars:
-          EXTRA_ARGS: '-coverprofile {{.ROOT_DIR}}/coverage-dir-cli.out -json > {{.ROOT_DIR}}/test-report-dir-cli.json'
+          EXTRA_ARGS: "-coverprofile {{.ROOT_DIR}}/coverage-dir-cli.out -json > {{.ROOT_DIR}}/test-report-dir-cli.json"
       - task: api:test
         vars:
-          EXTRA_ARGS: '-coverprofile {{.ROOT_DIR}}/coverage-dir-api.out -json > {{.ROOT_DIR}}/test-report-dir-api.json'
+          EXTRA_ARGS: "-coverprofile {{.ROOT_DIR}}/coverage-dir-api.out -json > {{.ROOT_DIR}}/test-report-dir-api.json"
       - task: client:test
         vars:
-          EXTRA_ARGS: '-coverprofile {{.ROOT_DIR}}/coverage-dir-client.out -json > {{.ROOT_DIR}}/test-report-dir-client.json'
+          EXTRA_ARGS: "-coverprofile {{.ROOT_DIR}}/coverage-dir-client.out -json > {{.ROOT_DIR}}/test-report-dir-client.json"
       - task: server:test
         vars:
-          EXTRA_ARGS: '-coverprofile {{.ROOT_DIR}}/coverage-dir-server.out -json > {{.ROOT_DIR}}/test-report-dir-server.json'
+          EXTRA_ARGS: "-coverprofile {{.ROOT_DIR}}/coverage-dir-server.out -json > {{.ROOT_DIR}}/test-report-dir-server.json"
 
   test:unit:coverage:html:
     desc: Extended per-module coverage run with summaries & HTML (non-regression)
@@ -922,15 +922,15 @@ tasks:
     vars:
       PUBLICATION_SCHEDULER_INTERVAL: '{{ .PUBLICATION_SCHEDULER_INTERVAL | default "1s" }}'
     env:
-      DIRECTORY_E2E_DEPLOYMENT_MODE: 'local'
+      DIRECTORY_E2E_DEPLOYMENT_MODE: "local"
     cmds:
       - defer: { task: deploy:kubernetes:local:cleanup }
       - defer: { task: deploy:kubernetes:local:port-forward:cleanup }
       - task: deploy:kubernetes:local
         vars:
-          DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL: '{{ .PUBLICATION_SCHEDULER_INTERVAL }}'
+          DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL: "{{ .PUBLICATION_SCHEDULER_INTERVAL }}"
       - task: deploy:kubernetes:local:port-forward
-      - 'go test -C ./e2e/local . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v'
+      - "go test -C ./e2e/local . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v"
 
   test:e2e:client:
     desc: Run only client library tests (with dedicated infrastructure)
@@ -938,15 +938,15 @@ tasks:
     vars:
       PUBLICATION_SCHEDULER_INTERVAL: '{{ .PUBLICATION_SCHEDULER_INTERVAL | default "1s" }}'
     env:
-      DIRECTORY_E2E_DEPLOYMENT_MODE: 'local'
+      DIRECTORY_E2E_DEPLOYMENT_MODE: "local"
     cmds:
       - defer: { task: deploy:kubernetes:local:cleanup }
       - defer: { task: deploy:kubernetes:local:port-forward:cleanup }
       - task: deploy:kubernetes:local
         vars:
-          DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL: '{{ .PUBLICATION_SCHEDULER_INTERVAL }}'
+          DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL: "{{ .PUBLICATION_SCHEDULER_INTERVAL }}"
       - task: deploy:kubernetes:local:port-forward
-      - 'go test -C ./e2e/client . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v'
+      - "go test -C ./e2e/client . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v"
 
   test:e2e:local:
     desc: Run end-to-end tests for local deployment (Client library + CLI tests)
@@ -954,19 +954,19 @@ tasks:
     vars:
       PUBLICATION_SCHEDULER_INTERVAL: '{{ .PUBLICATION_SCHEDULER_INTERVAL | default "1s" }}'
     env:
-      DIRECTORY_E2E_DEPLOYMENT_MODE: 'local'
+      DIRECTORY_E2E_DEPLOYMENT_MODE: "local"
     cmds:
       - defer: { task: deploy:kubernetes:local:cleanup }
       - defer: { task: deploy:kubernetes:local:port-forward:cleanup }
       # Bootstrap infrastructure once for both test suites
       - task: deploy:kubernetes:local
         vars:
-          DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL: '{{ .PUBLICATION_SCHEDULER_INTERVAL }}'
+          DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL: "{{ .PUBLICATION_SCHEDULER_INTERVAL }}"
       - task: deploy:kubernetes:local:port-forward
       # Run client library tests first (faster feedback)
-      - 'go test -C ./e2e/client . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v'
+      - "go test -C ./e2e/client . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v"
       # Run local CLI tests second (same infrastructure)
-      - 'go test -C ./e2e/local . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v'
+      - "go test -C ./e2e/local . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v"
 
   test:e2e:network:
     desc: Run end-to-end tests for network deployment (Multi-peer CLI tests)
@@ -974,7 +974,7 @@ tasks:
     vars:
       PUBLICATION_SCHEDULER_INTERVAL: '{{ .PUBLICATION_SCHEDULER_INTERVAL | default "1s" }}'
     env:
-      DIRECTORY_E2E_DEPLOYMENT_MODE: 'network'
+      DIRECTORY_E2E_DEPLOYMENT_MODE: "network"
     cmds:
       - defer: { task: deploy:kubernetes:network:cleanup }
       - defer: { task: deploy:kubernetes:network:port-forward:cleanup }
@@ -982,10 +982,10 @@ tasks:
       # NOTE: Run as a dedicated task instead of dependency, otherwise the port forwarding won't work
       - task: deploy:kubernetes:network
         vars:
-          PUBLICATION_SCHEDULER_INTERVAL: '{{ .PUBLICATION_SCHEDULER_INTERVAL }}'
+          PUBLICATION_SCHEDULER_INTERVAL: "{{ .PUBLICATION_SCHEDULER_INTERVAL }}"
       - task: deploy:kubernetes:network:port-forward
       # Run network tests with proper isolation and cleanup
-      - 'go test -C ./e2e/network . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v'
+      - "go test -C ./e2e/network . -v -failfast -test.v -test.paniconexit0 -ginkgo.timeout 2h -timeout 2h -ginkgo.v"
 
   # TODO: move spire out from here
   # TODO: change to Ingress services instead of LoadBalancer
@@ -998,7 +998,7 @@ tasks:
       # Setup DIR cluster
       - task: deploy:kubernetes:setup-cluster
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIR_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIR_TRUST_DOMAIN }}"
 
       # Start cloud provider for LoadBalancer support
       - |
@@ -1009,13 +1009,13 @@ tasks:
       # Deploy SPIRE on DIR cluster
       - task: deploy:kubernetes:spire
         vars:
-          TRUST_DOMAIN: '{{ .DIR_TRUST_DOMAIN }}'
+          TRUST_DOMAIN: "{{ .DIR_TRUST_DOMAIN }}"
           BUNDLE_PATH: /tmp/{{ .DIR_TRUST_DOMAIN }}.spiffe
 
       # Setup DIRCTL cluster
       - task: deploy:kubernetes:setup-cluster
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIRCTL_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIRCTL_TRUST_DOMAIN }}"
 
       # Start cloud provider for LoadBalancer support
       - |
@@ -1026,13 +1026,13 @@ tasks:
       # Deploy SPIRE on DIRCTL cluster
       - task: deploy:kubernetes:spire
         vars:
-          TRUST_DOMAIN: '{{ .DIRCTL_TRUST_DOMAIN }}'
+          TRUST_DOMAIN: "{{ .DIRCTL_TRUST_DOMAIN }}"
           BUNDLE_PATH: /tmp/{{ .DIRCTL_TRUST_DOMAIN }}.spiffe
 
       # Get DIR cluster service addresses
       - task: deploy:kubernetes:context
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIR_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIR_TRUST_DOMAIN }}"
       - |
         echo "Getting DIR cluster service addresses..."
         DIR_BUNDLE_IP=$(kubectl get service -n spire spire-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "127.0.0.1")
@@ -1041,7 +1041,7 @@ tasks:
       # Get DIRCTL cluster service addresses
       - task: deploy:kubernetes:context
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIRCTL_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIRCTL_TRUST_DOMAIN }}"
       - |
         echo "Getting DIRCTL cluster service addresses..."
         DIRCTL_BUNDLE_IP=$(kubectl get service -n spire spire-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "127.0.0.1")
@@ -1071,16 +1071,16 @@ tasks:
       # Deploy DIR server with federation
       - task: deploy:kubernetes:context
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIR_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIR_TRUST_DOMAIN }}"
       - task: deploy:kubernetes:dir
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIR_TRUST_DOMAIN }}'
-          HELM_EXTRA_ARGS: '-f /tmp/server-federation.yaml'
+          KIND_CLUSTER_NAME: "{{ .DIR_TRUST_DOMAIN }}"
+          HELM_EXTRA_ARGS: "-f /tmp/server-federation.yaml"
 
       # Get DIR API server address
       - task: deploy:kubernetes:context
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIR_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIR_TRUST_DOMAIN }}"
       - |
         echo "Getting DIR API server address..."
         DIR_API_IP=$(kubectl get service -n dir-server dir-apiserver -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "127.0.0.1")
@@ -1102,12 +1102,12 @@ tasks:
       # Deploy DIRCTL client in dir.example trust domain (same cluster as dir)
       - task: deploy:kubernetes:context
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIR_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIR_TRUST_DOMAIN }}"
       - task: deploy:kubernetes:dirctl
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIR_TRUST_DOMAIN }}'
-          HELM_NAMESPACE: 'dir-client'
-          HELM_EXTRA_ARGS: '-f /tmp/client-federation-dir-example.yaml'
+          KIND_CLUSTER_NAME: "{{ .DIR_TRUST_DOMAIN }}"
+          HELM_NAMESPACE: "dir-client"
+          HELM_EXTRA_ARGS: "-f /tmp/client-federation-dir-example.yaml"
 
       # Create DIRCTL client federation config (for dirctl.example cluster)
       - |
@@ -1133,11 +1133,11 @@ tasks:
       # Deploy DIRCTL client with federation (in dirctl.example cluster)
       - task: deploy:kubernetes:context
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIRCTL_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIRCTL_TRUST_DOMAIN }}"
       - task: deploy:kubernetes:dirctl
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIRCTL_TRUST_DOMAIN }}'
-          HELM_EXTRA_ARGS: '-f /tmp/client-federation.yaml'
+          KIND_CLUSTER_NAME: "{{ .DIRCTL_TRUST_DOMAIN }}"
+          HELM_EXTRA_ARGS: "-f /tmp/client-federation.yaml"
 
       # Display completion status
       - |
@@ -1171,11 +1171,11 @@ tasks:
       - echo "Cleaning up DIR cluster ({{ .DIR_TRUST_DOMAIN }})..."
       - task: deploy:kubernetes:cleanup
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIR_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIR_TRUST_DOMAIN }}"
       - echo "Cleaning up DIRCTL cluster ({{ .DIRCTL_TRUST_DOMAIN }})..."
       - task: deploy:kubernetes:cleanup
         vars:
-          KIND_CLUSTER_NAME: '{{ .DIRCTL_TRUST_DOMAIN }}'
+          KIND_CLUSTER_NAME: "{{ .DIRCTL_TRUST_DOMAIN }}"
       - echo "Cleanup complete!"
 
   ##
@@ -1202,9 +1202,9 @@ tasks:
     deps:
       - task: deps:protoc
       - task: deps:bufbuild
-    dir: ./api
+    dir: ./proto
     cmds:
-      - '{{.BUFBUILD_BIN}} lint'
+      - "{{.BUFBUILD_BIN}} lint"
 
   lint:
     desc: Run all linters
@@ -1269,7 +1269,7 @@ tasks:
     cmds:
       - task: poc:integration
         vars:
-          RECORD_FILE: 'docs/research/integrations/mcp-to-oasf-agent/extractor.record.json'
+          RECORD_FILE: "docs/research/integrations/mcp-to-oasf-agent/extractor.record.json"
 
   ##
   ## Dependencies
@@ -1404,7 +1404,7 @@ tasks:
     deps:
       - deps:bin-dir
     vars:
-      MULTIMOD_REPO_DIR: '{{ .BIN_DIR }}/opentelemetry-go-build-tools'
+      MULTIMOD_REPO_DIR: "{{ .BIN_DIR }}/opentelemetry-go-build-tools"
     cmds:
       - git clone https://github.com/open-telemetry/opentelemetry-go-build-tools --branch multimod/v{{.MULTIMOD_VERSION}} {{.MULTIMOD_REPO_DIR}}
       - go build -C {{.MULTIMOD_REPO_DIR}}/multimod -o {{.MULTIMOD_BIN}} main.go
@@ -1442,7 +1442,7 @@ tasks:
     deps:
       - deps:bin-dir
     env:
-      UV_INSTALL_DIR: '{{ .BIN_DIR }}'
+      UV_INSTALL_DIR: "{{ .BIN_DIR }}"
     cmds:
       - curl -sfL https://astral.sh/uv/{{.UV_VERSION}}/install.sh | sh
       - mv {{.BIN_DIR}}/uv {{.UV_BIN}}
@@ -1453,7 +1453,7 @@ tasks:
 
   deps:cosign:
     desc: Install sigstore cosign
-    dir: '{{ .BIN_DIR }}'
+    dir: "{{ .BIN_DIR }}"
     internal: true
     cmds:
       - curl -sfL https://github.com/sigstore/cosign/releases/download/v{{.COSIGN_VERSION}}/cosign-{{OS}}-{{ARCH}} -o cosign-{{.COSIGN_VERSION}}
@@ -1474,9 +1474,9 @@ tasks:
         sh: find . -name Chart.yaml -exec dirname {} \;
     cmds:
       # Add Helm repo
-      - '{{ .HELM_BIN }} repo add project-zot http://zotregistry.dev/helm-charts'
-      - '{{ .HELM_BIN }} repo add spiffe https://spiffe.github.io/helm-charts-hardened'
+      - "{{ .HELM_BIN }} repo add project-zot http://zotregistry.dev/helm-charts"
+      - "{{ .HELM_BIN }} repo add spiffe https://spiffe.github.io/helm-charts-hardened"
 
       # Update dependencies
       - for: { var: HELM_ALL_CHART_PATHS }
-        cmd: 'cd {{ .ITEM }} && {{ .HELM_BIN }} dependency update'
+        cmd: "cd {{ .ITEM }} && {{ .HELM_BIN }} dependency update"
