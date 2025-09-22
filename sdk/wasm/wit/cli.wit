@@ -1,0 +1,11 @@
+package dir:sdk@0.1.0;
+
+interface add {
+    add: func(x: u32, y: u32) -> u32;
+}
+
+world sdk {
+    include wasi:cli/imports@0.2.0;
+
+    export add;
+}
