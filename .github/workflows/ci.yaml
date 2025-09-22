@@ -44,21 +44,19 @@ jobs:
           restore-keys: |
             bin-cache-${{ runner.os }}-
 
-      - name: Create lint cache directory
-        run: mkdir -p /tmp/.lint-cache
-
       - name: Setup lint cache
         uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
-            /tmp/.lint-cache
+            ~/.cache/golangci-lint
+            ~/.cache/go-build
           key: lint-cache-${{ runner.os }}-${{ hashFiles('**/*.go') }}
           restore-keys: |
             lint-cache-${{ runner.os }}-
 
       - name: Lint Go
         run: |
-          GOLANGCI_LINT_CACHE=/tmp/.lint-cache task lint:go
+          task lint:go
 
       - name: Lint Buf
         run: |
