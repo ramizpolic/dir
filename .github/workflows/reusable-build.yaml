@@ -1,7 +1,7 @@
 # Copyright AGNTCY Contributors (https://github.com/agntcy)
 # SPDX-License-Identifier: Apache-2.0
 
-name: Build and Load
+name: Build
 
 on:
   workflow_call:
@@ -9,7 +9,7 @@ on:
       bake_target:
         required: true
         type: string
-        description: "Bake target to build and load"
+        description: "Bake target to build"
       image_repo:
         required: true
         type: string
@@ -18,10 +18,15 @@ on:
         required: true
         type: string
         description: "Image tag to use."
+      push:
+        required: false
+        type: boolean
+        default: false
+        description: "Whether to push the image to the registry."
 
 jobs:
-  build-and-load:
-    name: Build and Load
+  build:
+    name: ${{ inputs.bake_target }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -68,11 +73,11 @@ jobs:
       - name: Build
         uses: docker/bake-action@a4d7f0b5b91c14a296d792d4ec53a9db17f02e67 # v5.5.0
         with:
+          push: ${{ inputs.push }}
           files: |
             ./docker-bake.hcl
             ${{ steps.metadata.outputs.bake-file }}
           targets: ${{ inputs.bake_target }}
-          provenance: false
           set: |
             *.platform=linux/amd64
             *.output=type=docker,dest=/tmp/artifacts/${{ inputs.bake_target }}.tar
@@ -83,6 +88,7 @@ jobs:
           DOCKER_BUILD_RECORD_UPLOAD: false
 
       - name: Upload artifacts
+        if: ${{ !inputs.push }}
         uses: actions/upload-artifact@v4.6.1
         with:
           name: ${{ inputs.bake_target }}
