@@ -101,7 +101,7 @@ jobs:
   release:
     name: Release
     needs:
-      - images
+      - image
       - chart
       - cli
       - sdk
