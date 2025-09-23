@@ -257,16 +257,16 @@ tasks:
   sdk:test-env:create:
     desc: Create Kubernetes cluster test environment
     cmds:
-      - task: deploy:kubernetes:network
+      - task: deploy:kubernetes:local
         vars:
           PUBLICATION_SCHEDULER_INTERVAL: 1s
-      - task: deploy:kubernetes:network:port-forward
+      - task: deploy:kubernetes:local:port-forward
 
   sdk:test-env:delete:
     desc: Delete Kubernetes cluster test environment
     cmds:
-      - task: deploy:kubernetes:network:port-forward:cleanup
-      - task: deploy:kubernetes:network:cleanup
+      - task: deploy:kubernetes:local:port-forward:cleanup
+      - task: deploy:kubernetes:local:cleanup
 
   sdk:test-env:spiffe:load-test-image:
     desc: Load the SDK tests into KinD
@@ -313,9 +313,6 @@ tasks:
     deps:
       - task: deps:uv
     env:
-      DIRECTORY_CLIENT_SERVER_ADDRESS: "0.0.0.0:8890"
-      DIRECTORY_SERVER_PEER1_ADDRESS: "0.0.0.0:8891"
-      DIRECTORY_SERVER_PEER2_ADDRESS: "0.0.0.0:8892"
       KIND_CLUSTER_NAME: "sdk-py-test"
     cmds:
       - task: sdk:test-env:create
@@ -330,9 +327,6 @@ tasks:
     desc: Test javascript client SDK package
     dir: ./sdk/dir-js
     env:
-      DIRECTORY_CLIENT_SERVER_ADDRESS: "0.0.0.0:8890"
-      DIRECTORY_SERVER_PEER1_ADDRESS: "0.0.0.0:8891"
-      DIRECTORY_SERVER_PEER2_ADDRESS: "0.0.0.0:8892"
       KIND_CLUSTER_NAME: "sdk-js-test"
     cmds:
       - task: sdk:test-env:create
