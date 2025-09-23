@@ -18,6 +18,7 @@ on:
 permissions:
   id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
   unit:
@@ -32,6 +33,15 @@ jobs:
       - name: Setup Taskfile
         shell: bash
         run: sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+
+      - name: Setup bin cache
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: |
+            bin/
+          key: bin-cache-${{ runner.os }}-${{ hashFiles('bin/*') }}
+          restore-keys: |
+            bin-cache-${{ runner.os }}-
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -54,7 +64,7 @@ jobs:
           flags: per-module
           fail_ci_if_error: false
           verbose: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
 
       - name: Upload HTML reports as artifact
         uses: actions/upload-artifact@v4
@@ -73,18 +83,9 @@ jobs:
       image_repo: ${{ inputs.image_repo }}
       image_tag: ${{ inputs.image_tag }}
 
-  e2e-local:
-    name: Local
+  e2e:
+    name: E2E
     uses: ./.github/workflows/reusable-test-e2e.yaml
     with:
       image_repo: ${{ inputs.image_repo }}
       image_tag: ${{ inputs.image_tag }}
-      taskfile-task: "test:e2e:local"
-
-  e2e-network:
-    name: Network
-    uses: ./.github/workflows/reusable-test-e2e.yaml
-    with:
-      image_repo: ${{ inputs.image_repo }}
-      image_tag: ${{ inputs.image_tag }}
-      taskfile-task: "test:e2e:network"
