@@ -75,6 +75,7 @@ jobs:
         uses: docker/bake-action@a4d7f0b5b91c14a296d792d4ec53a9db17f02e67 # v5.5.0
         with:
           push: true
+          provenance: false
           files: |
             ./docker-bake.hcl
             ${{ steps.metadata.outputs.bake-file }}
@@ -91,6 +92,7 @@ jobs:
         if: ${{ !inputs.push }}
         uses: docker/bake-action@a4d7f0b5b91c14a296d792d4ec53a9db17f02e67 # v5.5.0
         with:
+          provenance: false
           files: |
             ./docker-bake.hcl
             ${{ steps.metadata.outputs.bake-file }}
