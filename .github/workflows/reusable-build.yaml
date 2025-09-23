@@ -67,10 +67,10 @@ jobs:
         uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-${{ matrix.target }}-buildx-${{ github.sha }}
+          key: buildx-${{ runner.os }}-${{ matrix.target }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.target }}-buildx-${{ github.ref }}
-            ${{ runner.os }}-${{ matrix.target }}-buildx-
+            buildx-${{ runner.os }}-${{ matrix.target }}-${{ github.ref }}
+            buildx-${{ runner.os }}-${{ matrix.target }}-
 
       - name: Docker metadata
         id: metadata
