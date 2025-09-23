@@ -8,6 +8,8 @@
 
 [Buf Registry](https://buf.build/agntcy/dir) | [Go SDK](https://pkg.go.dev/github.com/agntcy/dir/client) | [Python SDK](https://pypi.org/project/agntcy-dir/) | [JavaScript SDK](https://www.npmjs.com/package/agntcy-dir) | [GitHub Actions](https://github.com/agntcy/dir/tree/main/.github/actions/setup-dirctl) | [Documentation](https://docs.agntcy.org/dir/overview/)
 
+BUMP
+
 The Directory (dir) allows publication, exchange, and discovery of information about records over a distributed peer-to-peer network.
 It leverages [OASF](https://github.com/agntcy/oasf) to describe AI agents and provides a set of APIs and tools to store, publish, and discover records across the network by their attributes and constraints.
 Directory also leverages [CSIT](https://github.com/agntcy/csit) for continuous system integration and testing across different versions, environments, and features.
