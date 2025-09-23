@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 jobs:
-  test-unit:
+  unit:
     name: Unit
     runs-on: ubuntu-latest
     steps:
@@ -66,7 +66,14 @@ jobs:
             coverage-*.func.txt
             coverage-*.out
 
-  test-e2e-local:
+  sdk:
+    name: SDK
+    uses: ./.github/workflows/reusable-test-sdk.yaml
+    with:
+      image_repo: ${{ inputs.image_repo }}
+      image_tag: ${{ inputs.image_tag }}
+
+  e2e-local:
     name: Local
     uses: ./.github/workflows/reusable-test-e2e.yaml
     with:
@@ -74,17 +81,10 @@ jobs:
       image_tag: ${{ inputs.image_tag }}
       taskfile-task: "test:e2e:local"
 
-  test-e2e-network:
+  e2e-network:
     name: Network
     uses: ./.github/workflows/reusable-test-e2e.yaml
     with:
       image_repo: ${{ inputs.image_repo }}
       image_tag: ${{ inputs.image_tag }}
       taskfile-task: "test:e2e:network"
-
-  test-sdk:
-    name: SDK
-    uses: ./.github/workflows/reusable-test-sdk.yaml
-    with:
-      image_repo: ${{ inputs.image_repo }}
-      image_tag: ${{ inputs.image_tag }}

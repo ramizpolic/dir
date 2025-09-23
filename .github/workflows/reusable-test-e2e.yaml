@@ -21,7 +21,7 @@ on:
         description: 'Taskfile task to run'
 
 jobs:
-  test-e2e:
+  e2e:
     name: E2E
     runs-on: ubuntu-latest
     steps:

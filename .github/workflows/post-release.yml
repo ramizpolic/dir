@@ -47,10 +47,3 @@ jobs:
               ref: 'refs/tags/${{ matrix.tags }}/${{ github.ref_name }}',
               sha: context.sha
             })
-
-  brew:
-    name: Brew
-    uses: ./.github/workflows/reusable-brew-update.yaml
-    with:
-      create-pr: true
-      run-without-diff: false

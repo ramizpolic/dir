@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   sync-items:
-    name: Sync project items
+    name: Sync items
     runs-on: ubuntu-latest
     steps:
       - name: Sync stale items
@@ -49,7 +49,7 @@ jobs:
             re-open this PR or file a new one. Thank you!
 
   sync-labels:
-    name: Sync project labels
+    name: Sync labels
     runs-on: ubuntu-latest
     steps:
       - name: Checkout labels
