@@ -16,11 +16,10 @@ on:
         description: 'Image tag to use.'
 
 jobs:
-  test:
-    name: Test
+  e2e:
+    name: ${{ matrix.label }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         include:
           - task: test:e2e:local

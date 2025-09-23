@@ -55,7 +55,7 @@ jobs:
 
       - name: Add dependencies for SDKs testing
         env:
-          CLIENT_ID: "https://github.com/${{ github.repository }}/.github/workflows/reusable-test.yaml@${{ github.ref }}"
+          CLIENT_ID: "https://github.com/${{ github.repository }}/.github/workflows/reusable-test-sdk.yaml@${{ github.ref }}"
         run: |
           task sdk:deps:common
           task sdk:deps:cicd:iodc-token-generation >> $GITHUB_ENV
@@ -68,7 +68,7 @@ jobs:
           task sdk:test:python
 
   javascript:
-    name: Javascript
+    name: JavaScript
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -117,7 +117,7 @@ jobs:
 
       - name: Add dependencies for SDKs testing
         env:
-          CLIENT_ID: "https://github.com/${{ github.repository }}/.github/workflows/reusable-test.yaml@${{ github.ref }}"
+          CLIENT_ID: "https://github.com/${{ github.repository }}/.github/workflows/reusable-test-sdk.yaml@${{ github.ref }}"
         run: |
           task sdk:deps:common
           task sdk:deps:cicd:iodc-token-generation >> $GITHUB_ENV
