@@ -73,18 +73,9 @@ jobs:
       image_repo: ${{ inputs.image_repo }}
       image_tag: ${{ inputs.image_tag }}
 
-  e2e-local:
-    name: Local
+  e2e:
+    name: E2E
     uses: ./.github/workflows/reusable-test-e2e.yaml
     with:
       image_repo: ${{ inputs.image_repo }}
       image_tag: ${{ inputs.image_tag }}
-      taskfile-task: "test:e2e:local"
-
-  e2e-network:
-    name: Network
-    uses: ./.github/workflows/reusable-test-e2e.yaml
-    with:
-      image_repo: ${{ inputs.image_repo }}
-      image_tag: ${{ inputs.image_tag }}
-      taskfile-task: "test:e2e:network"
