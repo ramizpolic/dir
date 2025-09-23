@@ -103,8 +103,8 @@ jobs:
         run: |
           task license
 
-  verify-code:
-    name: Verify Code
+  verify:
+    name: Verify
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -138,7 +138,7 @@ jobs:
     needs:
       - lint
       - license
-      - verify-code
+      - verify
     uses: ./.github/workflows/reusable-build.yaml
     with:
       image_repo: ghcr.io/agntcy
