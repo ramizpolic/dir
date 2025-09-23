@@ -41,6 +41,17 @@ jobs:
           check-latest: true
           cache-dependency-path: "**/*.sum"
 
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: go-test-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            go-test-${{ runner.os }}-
+            go-${{ runner.os }}-
+
       - name: Run unit tests
         run: task test:unit:coverage:html
 
