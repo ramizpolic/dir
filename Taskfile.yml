@@ -1161,6 +1161,16 @@ tasks:
         echo ""
         echo "To cleanup:"
         echo "  task test:spire:cleanup"
+      # Display all the files created for reference
+      - |
+        echo "Configuration files created:"
+        echo "  /tmp/spire-addresses.env"
+        echo "  /tmp/{{ .DIR_TRUST_DOMAIN }}.spiffe"
+        echo "  /tmp/{{ .DIRCTL_TRUST_DOMAIN }}.spiffe"
+        echo "  /tmp/server-federation.yaml"
+        echo "  /tmp/client-federation.yaml"
+        echo "  /tmp/client-federation-dir-example.yaml"
+      - echo "=============================================="
 
   test:spire:cleanup:
     desc: Cleanup SPIRE federation test clusters
